@@ -8,3 +8,6 @@
 jeter*
 src/mod_fastq/.libs
 src/mod_bio_version.h
+.cproject
+.project
+src/mod_tabix/.libs

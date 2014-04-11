@@ -3,6 +3,7 @@
 var bio_mod={
 	mod_bam:true,
 	mod_fastq:true,
+	mod_tabix:true,
 	startsWith:function(str, suffix)
 		{
     		return str.slice(0, suffix.length) == suffix;
@@ -53,6 +54,51 @@ var bio_mod={
 	 			{
 	 			this.insert_anchor(anchor,"html","html");
 	 			this.insert_anchor(anchor,"xml","xml");
+	 			this.insert_anchor(anchor,"json","json");
+	 			this.insert_anchor(anchor,"txt","txt");
+	 			}
+	 		else if(this.mod_tabix && this.endsWith(file,".gz.tbi"))
+	 			{
+	 			var tabix_file=null;
+	 			for(;;)
+	 				{
+	 				//tabix file most probably before/after
+					if(i>0)
+						{
+						var file2=anchors.snapshotItem(i-1).textContent;
+						if((file2+".tbi")==file)
+							{
+							tabix_file =anchors.snapshotItem(i-1);
+							break;
+							}
+						}
+					if(i+1<anchors.snapshotLength)
+						{
+						var file2=anchors.snapshotItem(i+1).textContent;
+						if((file2+".tbi")==file)
+							{
+							tabix_file =anchors.snapshotItem(i+1);
+							break;
+							}
+						}
+		 			//search all
+		 			for (var j = 0; j < anchors.snapshotLength; j++)
+		 				{
+		 				if(i==j || i+1==j || i-1==j) continue;
+		 				var file2=anchors.snapshotItem(j).textContent;
+						if((file2+".tbi")==file)
+							{
+							tabix_file =anchors.snapshotItem(j);
+							break;
+							}
+		 				}
+		 			break;
+	 				}
+	 			if(tabix_file!=null)
+	 				{
+	 				this.insert_anchor(tabix_file,"txt","txt");
+	 				this.insert_anchor(tabix_file,"txt","txt");
+	 				}
 	 			}
 	 		}
 	 	
