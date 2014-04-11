@@ -15,7 +15,11 @@ deploy: build
 
 build: src/mod_fastq/mod_fastq.slo
 
-src/mod_fastq/mod_fastq.slo : samtools htslib src/mod_fastq/mod_fastq.c src/r_utils.c  src/r_utils.h 
+src/mod_fastq/mod_fastq.slo : samtools htslib \
+		src/mod_bio_version.h \
+		src/mod_fastq/mod_fastq.c \
+		src/r_utils.c  \
+		src/r_utils.h
 	${APXS} -Isamtools -I$(HTSDIR) -I$(HTSDIR)/htslib -Isrc -Lsamtools -L$(HTSDIR) \
 		-Wl,-rpath -Wl,$(LIBDIR) -i -a -c -Wc,'-Wall -g'  $(filter %.c,$^) -lm -lz -lhts -lbam && \
 	$(LIBTOOL) --finish $(LIBDIR)
@@ -32,7 +36,10 @@ samtools :
 	gcc -nostdlib --shared -Wl,--whole-archive $(SAMTOOLS)/libbam.a -o $(LIBDIR)/libbam.so && \
 	$(LIBTOOL) --finish $(LIBDIR)
 
-
+src/mod_bio_version.h:
+	echo -n '#define MOD_BIO_VERSION "' > $@
+	-git rev-parse HEAD  | tr -d "\n" >> $@
+	echo '"' >> $@
 
 clean:
 	 $(MAKE) -C samtools clean

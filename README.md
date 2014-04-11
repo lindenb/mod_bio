@@ -39,4 +39,6 @@ AddDescription "<a href='http://en.wikipedia.org/wiki/FASTQ_format' target='_bla
 
 ```
 
+$ git clone  "https://github.com/lindenb/mod_bio.git"
+$ git submodule update --init --recursive
 

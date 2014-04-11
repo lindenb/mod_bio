@@ -8,6 +8,7 @@
 #include <http_request.h>
 #include <http_config.h>
 #include <http_log.h>
+#include "mod_bio_version.h"
 
 /* max number of records to be fetched */
 #define DEFAULT_LIMIT_RECORDS 100 
@@ -30,11 +31,23 @@ const char* HttpParamGet(const HttpParamPtr root,const char* key);
 /* xml */
 int ap_xmlPuts(const char* s,request_rec *r);
 int ap_xmlPutc(char c,request_rec *r);
+/* json */
+int ap_jsonQuote(const char* s,request_rec *r);
+
 
 /* debug */
 #define TRACEINFO(r,...) \
 	ap_log_error(__FILE__, __LINE__, 0,0,r->server,##__VA_ARGS__)
 
+/* apache2 stuff*/
+
+
+/* mime types */
+
+#define MIME_TYPE_JSON "application/json"
+#define MIME_TYPE_XML "text/xml"
+#define MIME_TYPE_TEXT "text/plain"
+#define MIME_TYPE_HTML "text/html"
 
 #endif
 

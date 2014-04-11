@@ -25,6 +25,7 @@ static void unescape_space(char* s)
 		}
 	}
 
+
 HttpParamPtr HttpParamParseQuery(const char* query,size_t query_len)
     {
     size_t i=0UL;
@@ -123,4 +124,28 @@ int ap_xmlPutc(char c,request_rec *r)
 		default: return ap_rputc(c,r);
 		}
 	}
+
+int ap_jsonQuote(const char* s,request_rec *r)
+	{
+	const char*p=s;
+	if(s==NULL)
+		{
+		return ap_rputs("null",r);
+		}
+	ap_rputc('\"',r);
+	while(*p!=0)
+		{
+		switch(*p)
+			{
+			case '\\': ap_rputs("\\\\",r); break;
+			case '\t': ap_rputs("\\t",r); break;
+			case '\n': ap_rputs("\\n",r); break;
+			case '\"': ap_rputs("\"",r); break;
+			default: ap_rputc(*p,r); break;
+			}
+		++p;
+		}
+	return ap_rputc('\"',r);
+	}
+
 
