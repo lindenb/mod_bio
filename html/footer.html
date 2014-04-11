@@ -1,0 +1,67 @@
+</body>
+<script>
+var bio_mod={
+	mod_bam:true,
+	mod_fastq:true,
+	startsWith:function(str, suffix)
+		{
+    		return str.slice(0, suffix.length) == suffix;
+		},
+	endsWith:function()
+		{
+		var str=arguments[0];
+		for (var i = 1; i < arguments.length; i++)
+			{
+			var suffix=arguments[i];
+    			if( str.indexOf(suffix, str.length - suffix.length) !== -1) return true;
+    			}
+    		return false;
+		},
+	insert_anchor:function(anchor,label,format)
+		{
+		var a=document.createElement("a");
+		var parent=anchor.parentNode;
+		
+		a.setAttribute("href",anchor.getAttribute("href")+"?format="+format);
+		a.appendChild(document.createTextNode("["+label+"]"));
+		parent.appendChild(document.createTextNode(" "));
+		parent.appendChild(a);
+		},
+	init: function()
+	 	{
+	 	var anchors= document.evaluate(
+	 		"//tr/td/a[@href]",
+	 		document,
+	 		null,
+	 		XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+	 		null); 
+	 		
+	 	for (var i = 0; i < anchors.snapshotLength; i++)
+	 		{
+	 		var anchor=anchors.snapshotItem(i);
+
+	 		var file=anchor.textContent ;
+	 		if(this.startsWith(file,"/") || this.endsWith(file,"/") || file.indexOf("?")!=-1)
+	 			{
+	 			//ignore
+	 			}
+	 		else if(this.mod_bam && this.endsWith(file,".bam"))
+	 			{
+	 			this.insert_anchor(anchor,"html","html");
+	 			}
+	 		else if(this.mod_fastq && this.endsWith(file,".fastq",".fq",".fastq.gz",".fq.gz"))
+	 			{
+	 			this.insert_anchor(anchor,"html","html");
+	 			this.insert_anchor(anchor,"xml","xml");
+	 			}
+	 		}
+	 	
+	 	
+	 	}
+	};
+window.addEventListener("DOMContentLoaded", function load(event)
+	{
+	window.removeEventListener("DOMContentLoaded", load, false); //remove listener, no longer needed
+	bio_mod.init();
+	}, true);
+</script></html>

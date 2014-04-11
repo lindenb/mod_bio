@@ -1,0 +1,9 @@
+*.la
+*.a
+*.lo
+*.slo
+*.so
+*.o
+*~
+jeter*
+src/mod_fastq/.libs
