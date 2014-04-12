@@ -7,7 +7,10 @@
 *~
 jeter*
 src/mod_fastq/.libs
+src/mod_faidx/.libs/
+src/mod_tabix/.libs
 src/mod_bio_version.h
 .cproject
 .project
-src/mod_tabix/.libs
+examples/ex1.fa
+examples/ex1.fa.fai

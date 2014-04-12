@@ -10,6 +10,13 @@
 #include <http_log.h>
 #include "mod_bio_version.h"
 
+#ifndef MIN
+#define MIN(a,b) (a<b?a:b)
+#endif
+#ifndef MAX
+#define MAX(a,b) (a>b?a:b)
+#endif
+
 /* max number of records to be fetched */
 #define DEFAULT_LIMIT_RECORDS 100 
 
@@ -48,6 +55,26 @@ int ap_jsonQuote(const char* s,request_rec *r);
 #define MIME_TYPE_XML "text/xml"
 #define MIME_TYPE_TEXT "text/plain"
 #define MIME_TYPE_HTML "text/html"
+
+/* HTML fragments */
+extern const char* html_address;
+extern const char* css_stylesheet;
+
+/* file exist ? */
+extern int fileExists(const char* filename);
+/* file with extension exists */
+extern int fileExtExists(const char* filename,const char* suffix);
+
+/* parse region 'chrom:start-end' */
+typedef struct chrom_start_end_t
+    {
+	/* must be released with free() */
+	char* chromosome;
+	int p_beg_i0;
+	int p_end_i0;
+    } ChromStartEnd;
+
+extern int parseRegion(const char* s,ChromStartEnd* pos);
 
 #endif
 

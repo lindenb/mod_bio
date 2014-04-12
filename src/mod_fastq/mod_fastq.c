@@ -1,12 +1,12 @@
 #include <zlib.h>  
 #include <stdio.h> 
 #include <stdint.h>  
-#include "kseq.h" 
-#include "kstring.h"  
+#include "htslib/kseq.h"
+#include "htslib/kstring.h"
 #include "r_utils.h"
 
-// STEP 1: declare the type of file handler and the read() function  
-KSEQ_INIT(gzFile, gzread)  
+// STEP 1: declare the type of file handler and the read() function
+KSEQ_INIT(gzFile, gzread)
 
 struct fastq_callback_t
 	{
@@ -143,16 +143,7 @@ static void htmlStart( struct fastq_callback_t* handler)
 	ap_rputs("<html>",handler->r);
 	ap_rputs("<head>",handler->r);
 	ap_rputs("<style>",handler->r);
-	ap_rputs(
-		".fastqs{white-space:pre;font-family:monospace;}\n"
-		".ba{color:red;}\n"
-		".bt{color:green;}\n"
-		".bg{color:yellow;}\n"
-		".bc{color:blue;}\n"
-		".bn{color:black;}\n"
-		".seqname{color:black;}\n"
-		".seqqual{color:gray;}\n"
-		,handler->r);
+	ap_rputs(css_stylesheet,handler->r);
 	ap_rputs("</style>",handler->r);
 	ap_rputs("</head>",handler->r);
 	ap_rputs("<body>",handler->r);
@@ -172,7 +163,9 @@ static void htmlStart( struct fastq_callback_t* handler)
 
 static void htmlEnd( struct fastq_callback_t* handler)
 	{
-	ap_rputs("</div><div>version:" MOD_BIO_VERSION "</div></body></html>\n",handler->r);
+	ap_rputs("</div>",handler->r);
+	ap_rputs(html_address,handler->r);
+	ap_rputs("</body></html>\n",handler->r);
 	}
 
 static void htmlError( struct fastq_callback_t* handler,const char* msg)
@@ -271,7 +264,7 @@ static int fastq_handler(request_rec *r)
     		{
     		handler.limit=atol(limit);
     		}
-    	
+
     	if(format==NULL)
     		{
     		http_status=DECLINED;

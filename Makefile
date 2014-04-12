@@ -16,7 +16,19 @@ deploy: build
 	service apache2 restart
 
 build:	src/mod_fastq/mod_fastq.slo \
-		src/mod_tabix/mod_tabix.slo
+		src/mod_tabix/mod_tabix.slo \
+		src/mod_faidx/mod_faidx.slo
+
+src/mod_faidx/mod_faidx.slo : \
+		samtools htslib \
+		src/mod_bio_version.h \
+		src/mod_faidx/mod_faidx.c \
+		src/r_utils.c  \
+		src/r_utils.h
+	${APXS} -Isamtools -I$(HTSDIR) -Isrc -L$(LIBDIR) \
+		-i -a -c -Wc,'-Wall -g'  $(filter %.c,$^) -lhts -lbam -lm -lz  && \
+	$(LIBTOOL) --finish $(LIBDIR)
+
 
 src/mod_fastq/mod_fastq.slo : \
 		samtools htslib \
@@ -24,8 +36,8 @@ src/mod_fastq/mod_fastq.slo : \
 		src/mod_fastq/mod_fastq.c \
 		src/r_utils.c  \
 		src/r_utils.h
-	${APXS} -Isamtools -I$(HTSDIR) -I$(HTSDIR)/htslib -Isrc -Lsamtools -L$(HTSDIR) \
-		-i -a -c -Wc,'-Wall -g'  $(filter %.c,$^) -lm -lz -lhts -lbam && \
+	${APXS} -Isamtools -I$(HTSDIR) -Isrc -L$(LIBDIR) \
+		-i -a -c -Wc,'-Wall -g'  $(filter %.c,$^) -lhts -lbam -lm -lz  && \
 	$(LIBTOOL) --finish $(LIBDIR)
 
 src/mod_tabix/mod_tabix.slo : \
@@ -34,8 +46,8 @@ src/mod_tabix/mod_tabix.slo : \
 		src/mod_tabix/mod_tabix.c \
 		src/r_utils.c  \
 		src/r_utils.h
-	${APXS} -Isamtools -I$(HTSDIR) -I$(HTSDIR)/htslib -Isrc -Lsamtools -L$(HTSDIR) \
-		-i -a -c -Wc,'-Wall -g'  $(filter %.c,$^) -lm -lz -lhts -lbam && \
+	${APXS} -Isamtools -I$(HTSDIR)  -Isrc -L$(LIBDIR) \
+		-i -a -c -Wc,'-Wall -g'  $(filter %.c,$^) -lhts -lbam -lm -lz  && \
 	$(LIBTOOL) --finish $(LIBDIR)
 
 
@@ -55,5 +67,13 @@ src/mod_bio_version.h:
 	-git rev-parse HEAD  | tr -d "\n" >> $@
 	echo '"' >> $@
 
+
+examples/ex1.fa.fai:
+	mkdir -p $(dir $@) && \
+    cp $(SAMTOOLS)/examples/ex1.fa $(basename $@) && \
+	$(SAMTOOLS)/samtools faidx $(basename $@)
+
+
 clean:
-	 $(MAKE) -C samtools clean
+	find src -type f -name "*.lo" -o -name "*.la"  -o -name "*.so" -o -name "*.o" -delete
+	$(MAKE) -C samtools clean

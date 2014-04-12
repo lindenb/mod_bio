@@ -1,10 +1,10 @@
 #include <zlib.h>  
 #include <stdio.h> 
 #include <stdint.h>  
-#include "kseq.h" 
-#include "kstring.h"  
+#include "htslib/kseq.h"
+#include "htslib/kstring.h"
+#include "htslib/tbx.h"
 #include "r_utils.h"
-#include "tbx.h"
 
 // STEP 1: declare the type of file handler and the read() function  
 
