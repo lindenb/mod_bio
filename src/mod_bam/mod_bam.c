@@ -6,6 +6,7 @@
 #include "htslib/kstring.h"
 #include "r_utils.h"
 
+/** call back to print AUX data in BAM record */
 struct aux_callback_t
 	{
 	request_rec *r;
@@ -25,6 +26,8 @@ struct bam_callback_t
 	void (*enddocument)( struct bam_callback_t*);
 	int (*show)( struct bam_callback_t*,const  bam1_t *b);
 	};
+
+	
 /** PLAIN handlers ***************************************************/
 
 static void plainStart( struct bam_callback_t* handler)
@@ -370,7 +373,7 @@ static int jsonShow(
 	SIMPLE_INT_TAG("mapq",c->qual);
 	if (c->n_cigar) { // cigar
 		
-		OPEN_TAG("cigar-string");		
+		OPEN_TAG("cigar");		
 		ap_rputc('[',handler->r);
 		uint32_t *cigar = bam_get_cigar(b);
 		for (i = 0; i < c->n_cigar; ++i)
@@ -681,6 +684,7 @@ static int bam_handler(request_rec *r)
     do	{
 
 	const char* format=HttpParamGet(handler.httParams,"format");
+	const char* limit_str=HttpParamGet(handler.httParams,"limit");
     handler.region=HttpParamGet(handler.httParams,"region");
 
     	b=bam_init1();
@@ -689,6 +693,10 @@ static int bam_handler(request_rec *r)
     	    http_status=HTTP_INTERNAL_SERVER_ERROR;
     	    break;
     	    }
+    	if(limit_str!=NULL)
+    		{
+    		limit=atol(limit_str);
+    		}
 
     	if(format==NULL)
     		{

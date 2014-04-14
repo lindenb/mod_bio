@@ -1,0 +1,102 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>JSONP example (include both server and client code)</title>
+<script type="text/javascript" language="javascript">
+/* send data to server */
+function jsonp() {
+  var prev=document.getElementById('jsonpid');
+  if(prev!=null) prev.parentNode.removeChild(prev);
+  var ext=document.createElement("script");
+  ext.setAttribute('id', 'jsonpid');
+  ext.setAttribute('src', 'sorted1.bam?format=json&limit=10&callback=mycallback');
+  document.getElementsByTagName("head")[0].appendChild(ext);
+  }
+
+
+
+function SamRecord(b)
+	{
+	this.b=b;
+	this.alignEnd=null;
+	}
+
+SamRecord.prototype.isFlagSet=function(f)
+	{
+	return b.flag & f;
+	}
+SamRecord.prototype.isUnmapped=function()
+	{
+	return this.isFlagSet(0x4);
+	}
+SamRecord.prototype.isMapped=function()
+	{
+	return !this.isUnmapped();
+	}
+
+SamRecord.prototype.getAlignementStart=function()
+	{
+	return this.b.pos;
+	}	
+	
+SamRecord.prototype.getAlignementEnd=function()
+	{
+	if(this.isUnmapped()) return 0;
+	if(this.alignEnd==null)
+		{
+		this.alignEnd=this.getAlignementStart();
+		for (var i : this.b.cigar)
+		  	{
+		  	var element=this.b.cigar[i];
+		   	switch (element.op) {
+		        case 'M':
+		        case 'D':
+		        case 'N':
+		        case 'EQ':
+		        case 'X': this.alignEnd += element.count;break;
+		   	}
+            	}
+        return this.alignEnd;
+	}
+
+/* receive JSON data from server */
+function mycallback(JSONdata)
+  {
+  var y=0;
+  var rows=[];
+  for(i in JSONdata.records)
+  	{
+  	var rec=new SamRecord(JSONdata.records[i]);
+  	if(rec.isUnmapped()) continue;
+  	if(!rec.cigar || rec.cigar.length==0) continue;
+  	for(y=0;y< rows.length;y++)
+  		{
+  		var row=rows[i];
+  		var last=row[row.length-1];
+  		if(last.getAlignementEnd() < rec.getAlignementStart())
+  			{
+  			row.push(rec);
+  			break;
+  			}
+  		}
+  	if(y==rows.length)
+  		{
+  		var row=[];
+  		row.push(rec);
+  		rows.push(row);
+  		}
+  	}
+  }
+ 
+</script>
+</head> 
+<body>
+ <br style="line-height: 3em;" />
+ <form style="text-align: center;" action="javascript:jsonp();">
+
+  <input type="submit" value="Submit">
+ </form>
+
+
+</body>
+</html>
