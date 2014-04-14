@@ -1,0 +1,19 @@
+.fastqs{white-space:pre;font-family:monospace;border:2px solid;border-radius:20px; background-color:white;}
+.faidx{white-space:pre;font-family:monospace;border:2px solid;border-radius:20px;background-color:white;}
+.fileheader{white-space:pre;font-family:monospace;border:2px solid;background-color:white;}
+.filebody{white-space:pre;font-family:monospace; border:2px solid;background-color:white;}
+.ba{color:red;}
+.bt{color:green;}
+.bg{color:yellow;}
+.bc{color:blue;}
+.bn{color:black;}
+.ci{color:red;}
+.cd{color:orange;}
+.cm{color:green;}
+.ch{color:gray;}
+.cn{color:red;}
+.seqname{color:black;}
+.seqqual{color:gray;}
+body { background-color:lightgray;}
+.row0 { background-color:lightgray;}
+.row1 { background-color:white;}

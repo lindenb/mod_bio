@@ -21,7 +21,7 @@
 #define DEFAULT_LIMIT_RECORDS 100 
 
 int str_ends_with(const char*,const char*);
-
+int str_is_empty(const char* );
 
 typedef struct http_param
 	{
@@ -58,7 +58,7 @@ int ap_jsonQuote(const char* s,request_rec *r);
 
 /* HTML fragments */
 extern const char* html_address;
-extern const char* css_stylesheet;
+int printDefaulthtmlHead(request_rec *r);
 
 /* file exist ? */
 extern int fileExists(const char* filename);

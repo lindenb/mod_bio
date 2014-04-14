@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -17,7 +18,16 @@ int str_ends_with(const char* s,const char* suffix)
 	return len1 >= len2 && strcmp(&s[len1-len2], suffix)==0 ?1:0;
 	}
 
-
+int str_is_empty(const char* s)
+	{
+	if(s==NULL) return 1;
+	while(*s!=0)
+		{
+		if(!isspace(*s)) return 0;
+		++s;
+		}
+	return 1;
+	}
 
 static void unescape_space(char* s)
 	{
@@ -104,6 +114,16 @@ HttpParamPtr HttpParamFree(HttpParamPtr p)
 	return NULL;
 	}
 
+
+int printDefaulthtmlHead(request_rec *r)
+	{
+	ap_rputs("<meta charset=\"utf-8\"/>",r);
+	ap_rputs("<meta name=\"description\" content=\"mod_bio\"/>\n",r);
+	ap_rputs("<title>",r);
+	ap_xmlPuts(r->uri,r);
+	ap_rputs("</title>",r);	
+	return ap_rputs("<link rel=\"stylesheet\" href=\"/mod_bio/css/style.css\"></link>",r);
+	}
 
 int ap_xmlPuts(const char* s,request_rec *r)
 	{
@@ -194,11 +214,11 @@ int parseRegion(const char* region,ChromStartEnd* pos)
 
     hyphen=strchr(&colon[1],'-');
     if(hyphen==NULL)
-	{
-	free( pos->chromosome);
-	pos->chromosome=NULL;
-	return -1;
-	}
+		{
+		free( pos->chromosome);
+		pos->chromosome=NULL;
+		return -1;
+		}
     pos->p_beg_i0=atoi(&colon[1]);
     if(&hyphen[1]==0 || pos->p_beg_i0<0)
 	{
@@ -218,18 +238,6 @@ int parseRegion(const char* region,ChromStartEnd* pos)
     }
 
 /* html fragments */
-const char* html_address="<div>Pierre Lindenbaum <a href=\"https://github.com/lindenb/mod_bio\">https://github.com/lindenb/mod_bio</a> ."
-	    "<span>Git-Version:" MOD_BIO_VERSION "</span></div>"
+const char* html_address="<div class=\"aboutme\">Pierre Lindenbaum <a href=\"https://github.com/lindenb/mod_bio\">https://github.com/lindenb/mod_bio</a> ."
+	    "<span class=\"gitversion\">Git-Version:" MOD_BIO_VERSION "</span></div>"
 	    ;
-
-const char* css_stylesheet=
-	".fastqs{white-space:pre;font-family:monospace;}\n"
-	".faidx{white-space:pre;font-family:monospace;}\n"
-	".ba{color:red;}\n"
-	".bt{color:green;}\n"
-	".bg{color:yellow;}\n"
-	".bc{color:blue;}\n"
-	".bn{color:black;}\n"
-	".seqname{color:black;}\n"
-	".seqqual{color:gray;}\n"
-	;

@@ -140,11 +140,9 @@ static int jsonShow( struct fastq_callback_t* handler,const kseq_t *seq)
 static void htmlStart( struct fastq_callback_t* handler)
 	{
 	ap_set_content_type(handler->r, MIME_TYPE_HTML);
-	ap_rputs("<html>",handler->r);
+	ap_rputs("<!doctype html>\n<html lang=\"en\">",handler->r);
 	ap_rputs("<head>",handler->r);
-	ap_rputs("<style>",handler->r);
-	ap_rputs(css_stylesheet,handler->r);
-	ap_rputs("</style>",handler->r);
+	printDefaulthtmlHead(handler->r);
 	ap_rputs("</head>",handler->r);
 	ap_rputs("<body>",handler->r);
 	ap_rputs("<form>"

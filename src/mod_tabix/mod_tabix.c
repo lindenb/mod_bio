@@ -115,20 +115,9 @@ static int jsonShow( struct tabix_callback_t* handler,const kstring_t *seq)
 static void htmlStart( struct tabix_callback_t* handler)
 	{
 	ap_set_content_type(handler->r, MIME_TYPE_HTML);
-	ap_rputs("<html>",handler->r);
+	ap_rputs("<!doctype html>\n<html lang=\"en\">",handler->r);
 	ap_rputs("<head>",handler->r);
-	ap_rputs("<style>",handler->r);
-	ap_rputs(
-		".tabixs{white-space:pre;font-family:monospace;}\n"
-		".ba{color:red;}\n"
-		".bt{color:green;}\n"
-		".bg{color:yellow;}\n"
-		".bc{color:blue;}\n"
-		".bn{color:black;}\n"
-		".seqname{color:black;}\n"
-		".seqqual{color:gray;}\n"
-		,handler->r);
-	ap_rputs("</style>",handler->r);
+	printDefaulthtmlHead(handler->r);
 	ap_rputs("</head>",handler->r);
 	ap_rputs("<body>",handler->r);
 	ap_rputs("<form>"

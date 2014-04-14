@@ -1,14 +1,20 @@
 #include <zlib.h>  
 #include <stdio.h> 
-#include <stdint.h>  
+#include <stdint.h> 
+#include <ctype.h>
 #include "htslib/sam.h"
+#include "htslib/kstring.h"
 #include "r_utils.h"
 
-
-
+struct aux_callback_t
+	{
+	request_rec *r;
+	int (*print)( struct aux_callback_t*,const uint8_t* key,char type,const kstring_t* str, int index);
+	};
 
 struct bam_callback_t
 	{
+	HttpParamPtr httParams;
 	samFile* samFile;
 	bam_hdr_t *header;
 	request_rec *r;
@@ -24,7 +30,7 @@ struct bam_callback_t
 static void plainStart( struct bam_callback_t* handler)
 	{
 	ap_set_content_type(handler->r, "text/plain");
-
+	ap_rputs(handler->header->text,handler->r);	
 	}
 
 static void plainEnd( struct bam_callback_t* handler)
@@ -37,9 +43,132 @@ static int plainShow(
 	    const  bam1_t *b
 	    )
 	{
-
+	int ret=0;
+	kstring_t ks = { 0, 0, NULL };
+	if( sam_format1(handler->header, b,&ks)<0) return -1;
+	ret=ap_rputs(ks.s,handler->r);// write the alignment to `r'
+	ap_rputc('\n',handler->r);
+	free(ks.s);
+	return ret;
+	}
+	
+#define NEWKS kstring_t str = { 0, 0, NULL }
+#define FREEKS(n) free(str.s);s+=n
+#define ECHO_AUX(type) callback->print(callback,key,type,&str,num_count++)
+	
+/* generic loop to print AUX data*/
+int print_aux_data(struct aux_callback_t* callback, const  bam1_t *b)
+	{
+	int num_count=0;
+	uint8_t *s;
+	s = bam_get_aux(b); // aux
+	while (s+4 <= b->data + b->l_data)
+		{
+		uint8_t type, key[2];
+		key[0] = s[0]; key[1] = s[1];
+		s += 2; type = *s++;
+		
+		if (type == 'A') {
+			NEWKS;
+			kputc(*s, &str);
+			ECHO_AUX('A');
+			FREEKS(1);
+		} else if (type == 'C')
+			{
+			NEWKS;
+			kputw(*s, &str);
+			ECHO_AUX('i');
+			FREEKS(1);			
+			++s;
+		} else if (type == 'c')
+			{
+			NEWKS;
+			kputw(*(int8_t*)s, &str);
+			ECHO_AUX('i');
+			FREEKS(1);
+			} 
+		else if (type == 'S')
+			{
+			if (s+2 <= b->data + b->l_data) {
+				NEWKS;
+				kputw(*(uint16_t*)s, &str);
+				ECHO_AUX('i');
+				FREEKS(2);
+			} else return -1;
+		} else if (type == 's') {
+			if (s+2 <= b->data + b->l_data) {
+				NEWKS;
+				kputw(*(int16_t*)s, &str);
+				ECHO_AUX('i');
+				FREEKS(2);
+			} else return -1;
+		} else if (type == 'I') {
+			if (s+4 <= b->data + b->l_data) {
+				NEWKS;
+				kputw(*(uint32_t*)s, &str);
+				ECHO_AUX('i');
+				FREEKS(4);
+			} else return -1;
+		} else if (type == 'i') {
+			if (s+4 <= b->data + b->l_data) {
+				NEWKS;
+				kputw(*(int32_t*)s, &str);
+				ECHO_AUX('i');
+				FREEKS(4);
+			} else return -1;
+		} else if (type == 'f'){
+			if (s+4 <= b->data + b->l_data) {
+				NEWKS;
+				ksprintf(&str, "%g", *(float*)s);
+				ECHO_AUX('f');
+				FREEKS(4);
+			} else return -1;
+			
+		} else if (type == 'd') {
+			if (s+8 <= b->data + b->l_data)
+				{
+				NEWKS;
+				ksprintf(&str, "%g", *(double*)s);
+				ECHO_AUX('d');
+				FREEKS(8);
+			} else return -1;
+		} else if (type == 'Z' || type == 'H')
+			{
+			NEWKS;
+			while (s < b->data + b->l_data && *s) kputc(*s++, &str);
+			ECHO_AUX((char)type);
+			FREEKS(8);
+			if (s >= b->data + b->l_data)
+				{
+				return -1;
+				}
+			++s;
+		} else if (type == 'B') {
+			uint8_t sub_type = *(s++);
+			int32_t n;
+			int i;
+			memcpy(&n, s, 4);
+			s += 4; // no point to the start of the array
+			if (s + n >= b->data + b->l_data)
+				return -1;
+			
+			for (i = 0; i < n; ++i) { // FIXME: for better performance, put the loop after "if"
+				NEWKS;
+				if ('c' == sub_type)	  { kputw(*(int8_t*)s, &str); ECHO_AUX(sub_type);FREEKS(1); }
+				else if ('C' == sub_type) { kputw(*(uint8_t*)s, &str);ECHO_AUX(sub_type);FREEKS(1); }
+				else if ('s' == sub_type) { kputw(*(int16_t*)s, &str); ECHO_AUX(sub_type);FREEKS(2); }
+				else if ('S' == sub_type) { kputw(*(uint16_t*)s, &str); ECHO_AUX(sub_type);FREEKS(2); }
+				else if ('i' == sub_type) { kputw(*(int32_t*)s, &str); ECHO_AUX(sub_type);FREEKS(4); }
+				else if ('I' == sub_type) { kputuw(*(uint32_t*)s, &str);ECHO_AUX(sub_type);FREEKS(4); }
+				else if ('f' == sub_type) { ksprintf(&str, "%g", *(float*)s); ECHO_AUX(sub_type);FREEKS(4); }
+				else {free(str.s);}
+				
+			}
+		}
+	}
 	return 0;
 	}
+
 
 /** XML handlers ***************************************************/
 
@@ -47,6 +176,7 @@ static void xmlStart( struct bam_callback_t* handler)
 	{
 	ap_set_content_type(handler->r, "text/xml");
 	ap_rputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<sam-file>\n<header>",handler->r);
+	ap_xmlPuts(handler->header->text,handler->r);
 	ap_rputs("</header><records>",handler->r);
 	}
 
@@ -56,25 +186,45 @@ static void xmlEnd( struct bam_callback_t* handler)
 	ap_rputs("</records>\n</sam-file>\n",handler->r);
 	}
 
-#define OPEN_TAG(a)  ap_rputs("<" tag ">",handler->r)
-#define CLOSE_TAG(a)  ap_rputs("</" tag ">",handler->r)
+#define ap_kputw(i,r)  ap_rprintf(r,"%d",i)
+#define ap_kputuw(i,r)  ap_rprintf(r,"%u",i)
+#define OPEN_TAG(tag)  ap_rputs("<" tag ">",handler->r)
+#define CLOSE_TAG(tag)  ap_rputs("</" tag ">",handler->r)
+
+
 #define SIMPLE_STR_TAG(tag,a) do{if((a)!=NULL) {\
      OPEN_TAG(tag);\
-     ap_rputs((a),handler->r);\
+     ap_xmlPuts((a),handler->r);\
      CLOSE_TAG(tag);\
     }} while(0)
 #define SIMPLE_INT_TAG(tag,a) do{\
      OPEN_TAG(tag);\
-     ap_rptintf(handler->r,"%d",a);\
+     ap_kputw(a,handler->r);\
      CLOSE_TAG(tag);\
-    }} while(0)
+    } while(0)
+
+
+static int xmlPrintAux(
+	struct aux_callback_t* handler,
+	const uint8_t* key,
+	char type,
+	const kstring_t* str,
+	int index)
+	{
+	ap_rputs("<aux name=\"",handler->r);
+	ap_rwrite((void*)key,2,handler->r);
+	ap_rprintf(handler->r,"\" type=\"%c\">",type);
+	ap_xmlPuts(str->s,handler->r);\
+	return ap_rputs("</aux>",handler->r);
+	}
 
 static int xmlShow(
 	    struct bam_callback_t* handler,
 	     const  bam1_t *b
 	    )
 	{
-	uint8_t *s;
+	struct aux_callback_t auxh;
+	//uint8_t *s;
 	int i;
 	const bam1_core_t *c = &b->core;
 	OPEN_TAG("sam");
@@ -95,18 +245,18 @@ static int xmlShow(
 		for (i = 0; i < c->n_cigar; ++i)
 			{
 			ap_rprintf( handler->r,"<cigar op='%c' count='%d'/>",
+				bam_cigar_opchr(cigar[i]),
 				bam_cigar_oplen(cigar[i])
-				bam_cigar_opchr(cigar[i])
+				
 				);
 			}
 		CLOSE_TAG("cigar-string");
 		}
-	ap_rputc('\t', handler->r);
 	if (c->mtid >= 0)
 	    {
-	    SIMPLE_STR_TAG("mate-chrom",handler->header->target_name[c->mtid]);
-	    SIMPLE_INT_TAG("mate-pos",c->mpos + 1);
-	    SIMPLE_INT_TAG("insert-size",c->isize + 1);
+	    SIMPLE_STR_TAG("mate_chrom",handler->header->target_name[c->mtid]);
+	    SIMPLE_INT_TAG("mate_pos",c->mpos + 1);
+	    SIMPLE_INT_TAG("insert_size",c->isize + 1);
 	    }
 
 	if (c->l_qseq)
@@ -125,95 +275,19 @@ static int xmlShow(
 		    }
 		}
 	OPEN_TAG("aux-list");
-	s = bam_get_aux(b); // aux
-	while (s+4 <= b->data + b->l_data) {
-		uint8_t type, key[2];
-		key[0] = s[0]; key[1] = s[1];
-		s += 2; type = *s++;
-		OPEN_TAG("aux");
-		ap_rputc('\t', handler->r); ap_rputs((char*)key, 2, handler->r); ap_rputc(':', handler->r);
-		if (type == 'A') {
-			ap_rputs("A:", 2, handler->r);
-			ap_rputc(*s, handler->r);
-			++s;
-		} else if (type == 'C') {
-			ap_rputs("i:", 2, handler->r);
-			kputw(*s, handler->r);
-			++s;
-		} else if (type == 'c') {
-			ap_rputs("i:", 2, handler->r);
-			kputw(*(int8_t*)s, handler->r);
-			++s;
-		} else if (type == 'S') {
-			if (s+2 <= b->data + b->l_data) {
-				ap_rputs("i:", 2, handler->r);
-				kputw(*(uint16_t*)s, handler->r);
-				s += 2;
-			} else return -1;
-		} else if (type == 's') {
-			if (s+2 <= b->data + b->l_data) {
-				ap_rputs("i:", 2, handler->r);
-				kputw(*(int16_t*)s, handler->r);
-				s += 2;
-			} else return -1;
-		} else if (type == 'I') {
-			if (s+4 <= b->data + b->l_data) {
-				ap_rputs("i:", 2, handler->r);
-				kputuw(*(uint32_t*)s, handler->r);
-				s += 4;
-			} else return -1;
-		} else if (type == 'i') {
-			if (s+4 <= b->data + b->l_data) {
-				ap_rputs("i:", 2, handler->r);
-				kputw(*(int32_t*)s, handler->r);
-				s += 4;
-			} else return -1;
-		} else if (type == 'f') {
-			if (s+4 <= b->data + b->l_data) {
-				ksprintf(handler->r, "f:%g", *(float*)s);
-				s += 4;
-			} else return -1;
-
-		} else if (type == 'd') {
-			if (s+8 <= b->data + b->l_data) {
-				ksprintf(handler->r, "d:%g", *(double*)s);
-				s += 8;
-			} else return -1;
-		} else if (type == 'Z' || type == 'H') {
-			ap_rputc(type, handler->r); ap_rputc(':', handler->r);
-			while (s < b->data + b->l_data && *s) ap_rputc(*s++, handler->r);
-			if (s >= b->data + b->l_data)
-				return -1;
-			++s;
-		} else if (type == 'B') {
-			uint8_t sub_type = *(s++);
-			int32_t n;
-			memcpy(&n, s, 4);
-			s += 4; // no point to the start of the array
-			if (s + n >= b->data + b->l_data)
-				return -1;
-			ap_rputs("B:", 2, handler->r); ap_rputc(sub_type, handler->r); // write the typing
-			for (i = 0; i < n; ++i) { // FIXME: for better performance, put the loop after "if"
-				ap_rputc(',', handler->r);
-				if ('c' == sub_type)	  { kputw(*(int8_t*)s, handler->r); ++s; }
-				else if ('C' == sub_type) { kputw(*(uint8_t*)s, handler->r); ++s; }
-				else if ('s' == sub_type) { kputw(*(int16_t*)s, handler->r); s += 2; }
-				else if ('S' == sub_type) { kputw(*(uint16_t*)s, handler->r); s += 2; }
-				else if ('i' == sub_type) { kputw(*(int32_t*)s, handler->r); s += 4; }
-				else if ('I' == sub_type) { kputuw(*(uint32_t*)s, handler->r); s += 4; }
-				else if ('f' == sub_type) { ksprintf(handler->r, "%g", *(float*)s); s += 4; }
-			}
-
-		}
-	    CLOSE_TAG("aux");
-	    }
+	auxh.r = handler->r;
+	auxh.print = xmlPrintAux;
+	print_aux_data(&auxh,b);
 	CLOSE_TAG("aux-list");
 
-	CLOSE_TAG("sam");
-	return 0;
+	return CLOSE_TAG("sam");
 	}
-
+#undef CLOSE_TAG
+#undef OPEN_TAG
 #undef SIMPLE_STR_TAG
+#undef SIMPLE_INT_TAG
+#undef ap_kputw
+#undef ap_kputuw
 
 /** json handlers ***************************************************/
 static void jsonStart( struct bam_callback_t* handler)
@@ -224,53 +298,152 @@ static void jsonStart( struct bam_callback_t* handler)
 			ap_rputs(handler->jsonp_callback,handler->r);
 			ap_rputc('(',handler->r);
 			}
-
-
+	ap_rputs("{\"header\":",handler->r);
+	ap_jsonQuote(handler->header->text,handler->r);
+	ap_rputs(",\"records\":[",handler->r);
 	}
 
 
 static void jsonEnd( struct bam_callback_t* handler)
 	{
-
+	ap_rputs("]}",handler->r);
 	if(handler->jsonp_callback!=NULL)
 		{
 		ap_rputs(");\n",handler->r);
 		}
 	}
 
-
+#define ap_kputw(i,r)  ap_rprintf(r,"%d",i)
+#define ap_kputuw(i,r)  ap_rprintf(r,"%u",i)
+#define OPEN_TAG(s) ap_rputs(",\"" s "\":",handler->r);
+#define SIMPLE_INT_TAG(tag,i) ap_rprintf(handler->r,",\"" tag "\":%d",i)
+#define SIMPLE_STR_TAG(tag,s) do { if(s!=NULL) {OPEN_TAG(tag);ap_jsonQuote(s,handler->r);}} while(0)
 		
+		
+
+static int jsonPrintAux(
+	struct aux_callback_t* handler,
+	const uint8_t* key,
+	char type,
+	const kstring_t* str,
+	int index)
+	{
+	if(index>0) ap_rputc(',',handler->r);
+	ap_rputs("{\"name\":\"",handler->r);
+	ap_rwrite((void*)key,2,handler->r);
+	ap_rputs("\",\"type\":\"",handler->r);
+	ap_rprintf( handler->r,"%c:",type);
+	ap_rputs("\",\"value\":",handler->r);
+	switch(type)
+		{
+		case 'i':case 'I':case 'f':ap_rputs(str->s,handler->r);break;
+		default:ap_jsonQuote(str->s,handler->r);break;
+		}
+	return ap_rputc('}',handler->r);;		
+	}
 static int jsonShow(
 	    struct bam_callback_t* handler,
 	    const  bam1_t *b
 	    )
 	{
+	int i=0;
+	struct aux_callback_t auxh;
+	//uint8_t *s;
+	const bam1_core_t *c = &b->core;
+	
+	if(handler->count>0) ap_rputc(',',handler->r);
+	ap_rputc('\n',handler->r);
+	
+	
 
-	return 0;
+	
+	ap_rputs("{\"name\":",handler->r);
+	ap_jsonQuote(bam_get_qname(b),handler->r);
+
+	SIMPLE_INT_TAG("flag",c->flag);
+
+	if (c->tid >= 0)
+		{ // chr
+		SIMPLE_STR_TAG("chrom",handler->header->target_name[c->tid]);
+		}
+	SIMPLE_INT_TAG("pos",c->pos + 1);
+	SIMPLE_INT_TAG("mapq",c->qual);
+	if (c->n_cigar) { // cigar
+		
+		OPEN_TAG("cigar-string");		
+		ap_rputc('[',handler->r);
+		uint32_t *cigar = bam_get_cigar(b);
+		for (i = 0; i < c->n_cigar; ++i)
+			{
+			if(i>0) ap_rputc(',',handler->r);
+			ap_rprintf( handler->r,"{\"op\":\"%c\",\"count\":%d}",
+				bam_cigar_opchr(cigar[i]),
+				bam_cigar_oplen(cigar[i])
+				);
+			}
+		ap_rputc(']',handler->r);
+		}
+	if (c->mtid >= 0)
+	    {
+	    SIMPLE_STR_TAG("mate-chrom",handler->header->target_name[c->mtid]);
+	    SIMPLE_INT_TAG("mate-pos",c->mpos + 1);
+	    SIMPLE_INT_TAG("insert-size",c->isize + 1);
+	    }
+
+	if (c->l_qseq)
+		{ // seq and qual
+		OPEN_TAG("sequence");
+		ap_rputc('\"',handler->r);
+		uint8_t *s = bam_get_seq(b);
+		for (i = 0; i < c->l_qseq; ++i) ap_rputc("=ACMGRSVTWYHKDBN"[bam_seqi(s, i)], handler->r);
+		ap_rputc('\"',handler->r);
+
+		s = bam_get_qual(b);
+		if(!(s[0] == 0xff))
+		    {
+		   ap_rputs(",\"qual\":\"",handler->r);
+		    for (i = 0; i < c->l_qseq; ++i) ap_rputc(s[i] + 33, handler->r);
+			ap_rputc('\"',handler->r);
+		    }
+		}
+	ap_rputs(",\"aux\":[",handler->r);
+	auxh.r = handler->r;
+	auxh.print = jsonPrintAux;
+	print_aux_data(&auxh,b);
+	ap_rputc(']',handler->r);//end aux-list
+
+	return ap_rputc('}',handler->r);
+
 	}
+#undef CLOSE_TAG
+#undef OPEN_TAG
+#undef SIMPLE_STR_TAG
+#undef SIMPLE_INT_TAG
+#undef ap_kputw
+#undef ap_kputuw
+
 
 /** HTML handlers ***************************************************/
 static void htmlStart( struct bam_callback_t* handler)
 	{
 	ap_set_content_type(handler->r, MIME_TYPE_HTML);
-	ap_rputs("<html>",handler->r);
-	ap_rputs("<head><title>",handler->r);
-	ap_xmlPuts(handler->r->uri,handler->r);
-	ap_rputs("</title><style>",handler->r);
-	ap_rputs(css_stylesheet,handler->r);
-	ap_rputs("</style>",handler->r);
+	ap_rputs("<!doctype html>\n<html lang=\"en\">",handler->r);
+	ap_rputs("<head>",handler->r);
+	printDefaulthtmlHead(handler->r);
 	ap_rputs("</head>",handler->r);
 	ap_rputs("<body>",handler->r);
-	ap_rputs("<form>"
+	ap_rprintf(handler->r,
+		"<form>"
 		"<label for='format'>Format:</label> <select  id='format' name='format'>"
 		"<option value='html'>html</option>"
 		"<option value='json'>json</option>"
 		"<option value='xml'>xml</option>"
 		"<option value='text'>text</option>"
 		"</select> "
-		"<label for='limit'>Limit:</label> <input id='limit' name='limit' placeholder='max records' type=\"number\" value=\"" #DEFAULT_LIMIT_RECORDS "\"/>"
-		"<label for='region'>Region:</label> <input id='region' name='region' placeholder='chrom:start-end' "
-		,handler->r);
+		"<label for='limit'>Limit:</label> <input id='limit' name='limit' placeholder='max records' type=\"number\" value=\"%d\"/>"
+		"<label for='region'>Region:</label> <input id='region' name='region' placeholder='chrom:start-end' ",
+		DEFAULT_LIMIT_RECORDS
+		);
 	if(handler->region!=NULL)
 	    {
 	    ap_rputs(" value=\"",handler->r);
@@ -286,7 +459,24 @@ static void htmlStart( struct bam_callback_t* handler)
 	    ap_xmlPuts(handler->region,handler->r);
 	    ap_rputs("</h3>",handler->r);
 	    }
-	ap_rputs("<div class='bam'>"
+	ap_rputs("<div class='fileheader'>"
+		,handler->r);
+	ap_xmlPuts(handler->header->text,handler->r);
+	ap_rputs("</div><div><table>"
+		"<thead><tr>"
+		"<th>Name</th>"
+		"<th>Flag</th>"
+		"<th>Chrom</th>"
+		"<th>Pos</th>"
+		"<th>mapQ</th>"
+		"<th>Cigar</th>"
+		"<th>Mate Chrom</th>"
+		"<th>Mate Pos</th>"
+		"<th>TLen</th>"
+		"<th>SEQ</th>"
+		"<th>Qual</th>"
+		"<th>Aux</th>"
+		"</tr></thead><tbody>"
 		,handler->r);
 	}
 
@@ -294,20 +484,143 @@ static void htmlStart( struct bam_callback_t* handler)
 static void htmlEnd( struct bam_callback_t* handler)
 	{
 
-	ap_rputs("</div>",handler->r);
+	ap_rputs("<tbody></table></div>",handler->r);
 	ap_rputs(html_address,handler->r);
 	ap_rputs("</body></html>\n",handler->r);
 	}
 
-		
+#define ap_kputw(i,r)  ap_rprintf(r,"%d",i)
+#define ap_kputuw(i,r)  ap_rprintf(r,"%u",i)
+#define OPEN_TAG(tag)  ap_rputs("<" tag ">",handler->r)
+#define CLOSE_TAG(tag)  ap_rputs("</" tag ">",handler->r)
+
+
+#define SIMPLE_STR_TAG(a) do{if((a)!=NULL) {\
+     OPEN_TAG("td");\
+     ap_xmlPuts((a),handler->r);\
+     CLOSE_TAG("td");\
+    }} while(0)
+#define SIMPLE_INT_TAG(a) do{\
+     OPEN_TAG("td");\
+     ap_kputw(a,handler->r);\
+     CLOSE_TAG("td");\
+    } while(0)
+
+
+static int htmlPrintAux(
+	struct aux_callback_t* handler,
+	const uint8_t* key,
+	char type,
+	const kstring_t* str,
+	int index)
+	{
+	ap_rputs("<span>",handler->r);
+	ap_rwrite((void*)key,2,handler->r);
+	ap_rprintf( handler->r,":%c:",type);
+	ap_xmlPuts(str->s,handler->r);\
+	return ap_rputs("</span> ",handler->r);
+	}
+
+
 static int htmlShow(
 	    struct bam_callback_t* handler,
 	    const  bam1_t *b
 	    )
 	{
+	struct aux_callback_t auxh;
+	//uint8_t *s;
+	int i;
+	const bam1_core_t *c = &b->core;
+	ap_rprintf( handler->r,"<tr class=\"row%d\">",
+		(int)(handler->count%2)
+		);
 
+	SIMPLE_STR_TAG(bam_get_qname(b));
+
+	SIMPLE_INT_TAG(c->flag);
+
+	if (c->tid >= 0)
+		{ // chr
+		SIMPLE_STR_TAG(handler->header->target_name[c->tid]);
+		}
+	else
+		{
+		OPEN_TAG("td");CLOSE_TAG("td");
+		}
+	SIMPLE_INT_TAG(c->pos + 1);
+	SIMPLE_INT_TAG(c->qual);
+	
+	OPEN_TAG("td");
+	if (c->n_cigar) { // cigar
+		
+		uint32_t *cigar = bam_get_cigar(b);
+		for (i = 0; i < c->n_cigar; ++i)
+			{
+			ap_rprintf( handler->r,
+				"<span class=\"c%c\">%c%d</span>",
+				tolower(bam_cigar_opchr(cigar[i])=='='?'m':bam_cigar_opchr(cigar[i])),
+				bam_cigar_opchr(cigar[i]),
+				bam_cigar_oplen(cigar[i])
+				);
+			}
+		
+		}
+	if (c->mtid >= 0)
+	    {
+	    SIMPLE_STR_TAG(handler->header->target_name[c->mtid]);
+	    SIMPLE_INT_TAG(c->mpos + 1);
+	    SIMPLE_INT_TAG(c->isize + 1);
+	    }
+	   else
+	  	{
+	  	OPEN_TAG("td");CLOSE_TAG("td");
+	  	OPEN_TAG("td");CLOSE_TAG("td");
+	  	OPEN_TAG("td");CLOSE_TAG("td");
+	    }
+	
+	if (c->l_qseq)
+		{ // seq and qual
+		OPEN_TAG("td");   
+		uint8_t *s = bam_get_seq(b);
+		for (i = 0; i < c->l_qseq; ++i)
+			{
+			char base="=ACMGRSVTWYHKDBN"[bam_seqi(s, i)];
+			ap_rprintf(handler->r,"<span class=\"b%c\">%c</span>",tolower(base),base);
+			}
+		CLOSE_TAG("td");
+		s = bam_get_qual(b);
+		if(!(s[0] == 0xff))
+		    {
+		    OPEN_TAG("td");
+		    for (i = 0; i < c->l_qseq; ++i) ap_rputc(s[i] + 33, handler->r);
+		    CLOSE_TAG("td");
+		    }
+		else
+			{
+			OPEN_TAG("td");CLOSE_TAG("td");
+			}
+		}
+	else
+		{
+	  	OPEN_TAG("td");CLOSE_TAG("td");
+	  	OPEN_TAG("td");CLOSE_TAG("td");
+		}
+		
+	OPEN_TAG("td");
+	auxh.r = handler->r;
+	auxh.print = htmlPrintAux;
+	print_aux_data(&auxh,b);
+	CLOSE_TAG("td");
+	
+	CLOSE_TAG("tr");
 	return 0;
 	}
+#undef CLOSE_TAG
+#undef OPEN_TAG
+#undef SIMPLE_STR_TAG
+#undef SIMPLE_INT_TAG
+#undef ap_kputw
+#undef ap_kputuw
 
 
 /* Define prototypes of our functions in this module */
@@ -337,15 +650,14 @@ static void register_hooks(apr_pool_t *pool)
 static int bam_handler(request_rec *r)
     {
     struct bam_callback_t handler;
-    HttpParamPtr httParams=NULL;
-    ChromStartEnd chromStartEnd;
+    
+   
     int http_status=OK;
     hts_itr_t *iter=NULL;
     hts_idx_t *idx=NULL;
     bam1_t *b=NULL;
     long limit=DEFAULT_LIMIT_RECORDS;
     memset((void*)&handler,0,sizeof(struct bam_callback_t));
-    memset((void*)&chromStartEnd,0,sizeof(ChromStartEnd));
 
 
     if (!r->handler || strcmp(r->handler, "bam-handler")) return (DECLINED);
@@ -356,19 +668,20 @@ static int bam_handler(request_rec *r)
        	))  return DECLINED;
     /* check file exists */
     if((http_status=fileExists(r->canonical_filename))!=OK)
-	{
-	return http_status;
-	}
+		{
+		return http_status;
+		}
 
-    httParams = HttpParamParseGET(r); 
-    if(httParams==NULL) return DECLINED;
-    handler.r=r;
+	handler.r=r;
+    handler.httParams = HttpParamParseGET(r); 
+    if( handler.httParams==NULL) return DECLINED;
+    
     
     /* only one loop, we use this to cleanup the code, instead of using a goto statement */
     do	{
 
-	const char* format=HttpParamGet(httParams,"format");
-    	handler.region=HttpParamGet(httParams,"region");
+	const char* format=HttpParamGet(handler.httParams,"format");
+    handler.region=HttpParamGet(handler.httParams,"region");
 
     	b=bam_init1();
     	if(b==NULL)
@@ -390,7 +703,7 @@ static int bam_handler(request_rec *r)
     	 	}
     	 else if(strcmp(format,"json")==0 || strcmp(format,"jsonp")==0)
     	 	{
-    	 	handler.jsonp_callback=HttpParamGet(httParams,"callback");
+    	 	handler.jsonp_callback=HttpParamGet(handler.httParams,"callback");
     	 	handler.startdocument= jsonStart;
     	 	handler.enddocument= jsonEnd;
     	 	handler.show= jsonShow;
@@ -418,26 +731,26 @@ static int bam_handler(request_rec *r)
 
     	handler.header= sam_hdr_read(handler.samFile);
     	if(handler.header==NULL)
-		{
-		http_status=HTTP_INTERNAL_SERVER_ERROR;
-		break;
-		}
+			{
+			http_status=HTTP_INTERNAL_SERVER_ERROR;
+			break;
+			}
 
 
-    	if(handler.region!=NULL)
+    	if(handler.region!=NULL && !str_is_empty(handler.region))
     	    {
     	    idx = bam_index_load(r->canonical_filename);
     	    if(idx==NULL)
-    		{
-    		http_status=HTTP_INTERNAL_SERVER_ERROR;
-    		break;
-    		}
+	    		{
+	    		http_status=HTTP_INTERNAL_SERVER_ERROR;
+	    		break;
+	    		}
     	    iter = bam_itr_querys(idx, handler.header, handler.region);
     	    if(iter==NULL)
-    		{
-    		http_status=HTTP_BAD_REQUEST;
-    		break;
-    		}
+	    		{
+	    		http_status=HTTP_BAD_REQUEST;
+	    		break;
+	    		}
     	    }
 
 
@@ -445,17 +758,17 @@ static int bam_handler(request_rec *r)
     	 while(limit==-1  || handler.count<limit)
     	     {
     	     int r;
-	     if(iter==NULL)
-		 {
-		 r = sam_read1(handler.samFile, handler.header, b);
-		 }
-	     else
-		 {
-		 r = bam_itr_next(handler.samFile, iter, b);
-		 }
-	     if(r<0) break;
-	     if(handler.show(&handler,b)!=0) break;
-	     handler.count++;
+		     if(iter==NULL)
+				 {
+				 r = sam_read1(handler.samFile, handler.header, b);
+				 }
+		     else
+				 {
+				 r = bam_itr_next(handler.samFile, iter, b);
+				 }
+		     if(r<0) break;
+		     if(handler.show(&handler,b)<0) break;
+		     handler.count++;
     	     }
 
     	 handler.enddocument(&handler);
@@ -464,7 +777,7 @@ static int bam_handler(request_rec *r)
     
     
     //cleanup
-    HttpParamFree(httParams);
+    HttpParamFree(handler.httParams);
     if(b!=NULL) bam_destroy1(b);
     if(iter!=NULL) hts_itr_destroy(iter);
     if(idx!=NULL) hts_idx_destroy(idx);
