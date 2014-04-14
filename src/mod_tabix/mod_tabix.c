@@ -189,6 +189,7 @@ static int tabix_handler(request_rec *r)
     int print_body=1;
 
     int http_status=OK;
+
     if (!r->handler || strcmp(r->handler, "tabix-handler")) return (DECLINED);
     if (strcmp(r->method, "GET")!=0) return DECLINED;
     if(r->canonical_filename==NULL)  return DECLINED;

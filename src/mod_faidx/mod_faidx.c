@@ -274,12 +274,12 @@ static int faidx_handler(request_rec *r)
     HttpParamPtr httParams=NULL;
     ChromStartEnd chromStartEnd;
     int http_status=OK;
-
     memset((void*)&handler,0,sizeof(struct faidx_callback_t));
     memset((void*)&chromStartEnd,0,sizeof(ChromStartEnd));
 
 
     if (!r->handler || strcmp(r->handler, "faidx-handler")) return (DECLINED);
+
     if (strcmp(r->method, "GET")!=0) return DECLINED;
     if(r->canonical_filename==NULL)  return DECLINED;
     if( !(
@@ -358,7 +358,7 @@ static int faidx_handler(request_rec *r)
     	if(region!=NULL)
     	    {
 	    int p_curr=handler.region.p_beg_i0;
-	   while(p_curr<= handler.region.p_end_i0)
+	    while(p_curr<= handler.region.p_end_i0)
 		{
 		int ret=0;
 	        int len=0;

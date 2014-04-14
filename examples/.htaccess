@@ -1,7 +1,11 @@
-AddHandler example-handler .example 
 AddHandler fastq-handler .fastq.gz
 AddHandler fastq-handler .fastq
+AddHandler fastq-handler .fq.gz
+AddHandler fastq-handler .fq
 AddHandler bam-handler .bam
+AddHandler tabix-handler .vcf
+AddHandler faidx-handler .fa
+AddHandler faidx-handler .fasta
 
 
 

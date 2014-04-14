@@ -4,6 +4,7 @@ var bio_mod={
 	mod_bam:true,
 	mod_fastq:true,
 	mod_tabix:true,
+	mod_faidx:true,
 	startsWith:function(str, suffix)
 		{
     		return str.slice(0, suffix.length) == suffix;
@@ -28,6 +29,37 @@ var bio_mod={
 		parent.appendChild(document.createTextNode(" "));
 		parent.appendChild(a);
 		},
+	find_with_ext:function(i,anchors,file,extension)
+		{
+		//file most probably before/after ith element
+		if(i>0)
+			{
+			var file2=anchors.snapshotItem(i-1).textContent;
+			if((file2+extension)==file)
+				{
+				return anchors.snapshotItem(i-1);
+				}
+			}
+		if(i+1<anchors.snapshotLength)
+			{
+			var file2=anchors.snapshotItem(i+1).textContent;
+			if((file2+extension)==file)
+				{
+				return anchors.snapshotItem(i+1);
+				}
+			}
+		//search all
+		for (var j = 0; j < anchors.snapshotLength; j++)
+			{
+			if(i==j || i+1==j || i-1==j) continue;
+			var file2=anchors.snapshotItem(j).textContent;
+			if((file2+extension)==file)
+				{
+				return anchors.snapshotItem(j);
+				}
+ 			}
+ 			
+		},
 	init: function()
 	 	{
 	 	var anchors= document.evaluate(
@@ -46,9 +78,16 @@ var bio_mod={
 	 			{
 	 			//ignore
 	 			}
-	 		else if(this.mod_bam && this.endsWith(file,".bam"))
+	 		else if(this.mod_bam && this.endsWith(file,".bam.bai"))
 	 			{
-	 			this.insert_anchor(anchor,"html","html");
+	 			var real=this.find_with_ext(i,anchors,file,".bai");
+	 			if(real!=null)
+		 			{
+		 			this.insert_anchor(real,"html","html");
+		 			this.insert_anchor(real,"xml","xml");
+		 			this.insert_anchor(real,"json","json");
+		 			this.insert_anchor(real,"txt","txt");
+		 			}
 	 			}
 	 		else if(this.mod_fastq && this.endsWith(file,".fastq",".fq",".fastq.gz",".fq.gz"))
 	 			{
@@ -59,46 +98,25 @@ var bio_mod={
 	 			}
 	 		else if(this.mod_tabix && this.endsWith(file,".gz.tbi"))
 	 			{
-	 			var tabix_file=null;
-	 			for(;;)
-	 				{
-	 				//tabix file most probably before/after
-					if(i>0)
-						{
-						var file2=anchors.snapshotItem(i-1).textContent;
-						if((file2+".tbi")==file)
-							{
-							tabix_file =anchors.snapshotItem(i-1);
-							break;
-							}
-						}
-					if(i+1<anchors.snapshotLength)
-						{
-						var file2=anchors.snapshotItem(i+1).textContent;
-						if((file2+".tbi")==file)
-							{
-							tabix_file =anchors.snapshotItem(i+1);
-							break;
-							}
-						}
-		 			//search all
-		 			for (var j = 0; j < anchors.snapshotLength; j++)
-		 				{
-		 				if(i==j || i+1==j || i-1==j) continue;
-		 				var file2=anchors.snapshotItem(j).textContent;
-						if((file2+".tbi")==file)
-							{
-							tabix_file =anchors.snapshotItem(j);
-							break;
-							}
-		 				}
-		 			break;
-	 				}
-	 			if(tabix_file!=null)
-	 				{
-	 				this.insert_anchor(tabix_file,"txt","txt");
-	 				this.insert_anchor(tabix_file,"txt","txt");
-	 				}
+	 			var real=this.find_with_ext(i,anchors,file,".tbi");
+	 			if(real!=null)
+		 			{
+		 			this.insert_anchor(real,"html","html");
+		 			this.insert_anchor(real,"xml","xml");
+		 			this.insert_anchor(real,"json","json");
+		 			this.insert_anchor(real,"txt","txt");
+		 			}
+	 			}
+	 		else if(this.mod_faidx && this.endsWith(file,".fa.fai",".fasta.fa"))
+	 			{
+	 			var real=this.find_with_ext(i,anchors,file,".fai");
+	 			if(real!=null)
+		 			{
+		 			this.insert_anchor(real,"html","html");
+		 			this.insert_anchor(real,"xml","xml");
+		 			this.insert_anchor(real,"json","json");
+		 			this.insert_anchor(real,"txt","txt");
+		 			}
 	 			}
 	 		}
 	 	

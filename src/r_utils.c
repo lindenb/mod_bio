@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
+#include "htslib/../version.h"
 #include "r_utils.h"
 
 
@@ -239,5 +239,7 @@ int parseRegion(const char* region,ChromStartEnd* pos)
 
 /* html fragments */
 const char* html_address="<div class=\"aboutme\">Pierre Lindenbaum <a href=\"https://github.com/lindenb/mod_bio\">https://github.com/lindenb/mod_bio</a> ."
-	    "<span class=\"gitversion\">Git-Version:" MOD_BIO_VERSION "</span></div>"
+	    "<span class=\"version\">Git-Version:" MOD_BIO_VERSION "</span> "
+	    "<span class=\"version\">Hts-Version:" HTS_VERSION "</span> "
+	    "</div>"
 	    ;

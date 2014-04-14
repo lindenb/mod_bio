@@ -1,43 +1,49 @@
-<html>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:svg="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      >
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>JSONP example (include both server and client code)</title>
 <script type="text/javascript" language="javascript">
-/* send data to server */
-function jsonp() {
-  var prev=document.getElementById('jsonpid');
-  if(prev!=null) prev.parentNode.removeChild(prev);
-  var ext=document.createElement("script");
-  ext.setAttribute('id', 'jsonpid');
-  ext.setAttribute('src', 'sorted1.bam?format=json&limit=10&callback=mycallback');
-  document.getElementsByTagName("head")[0].appendChild(ext);
-  }
 
-
+var gconf={
+	width:1000,
+	rowHeigt:20,
+	chromStart:0,
+	chromEnd:0,
+	baseToPixel:function(pos)
+		{
+		return ((pos-this.chromStart)/(this.chromEnd-this.chromStart))*this.width;
+		}
+	};
 
 function SamRecord(b)
 	{
 	this.b=b;
 	this.alignEnd=null;
-	}
+	};
 
 SamRecord.prototype.isFlagSet=function(f)
 	{
-	return b.flag & f;
-	}
+	return this.b.flag & f;
+	};
+	
 SamRecord.prototype.isUnmapped=function()
 	{
 	return this.isFlagSet(0x4);
-	}
+	};
+
 SamRecord.prototype.isMapped=function()
 	{
 	return !this.isUnmapped();
-	}
+	};
 
 SamRecord.prototype.getAlignementStart=function()
 	{
 	return this.b.pos;
-	}	
+	};
 	
 SamRecord.prototype.getAlignementEnd=function()
 	{
@@ -45,33 +51,38 @@ SamRecord.prototype.getAlignementEnd=function()
 	if(this.alignEnd==null)
 		{
 		this.alignEnd=this.getAlignementStart();
-		for (var i : this.b.cigar)
+		for (var i in this.b.cigar)
 		  	{
 		  	var element=this.b.cigar[i];
-		   	switch (element.op) {
-		        case 'M':
-		        case 'D':
-		        case 'N':
-		        case 'EQ':
-		        case 'X': this.alignEnd += element.count;break;
-		   	}
+			   	switch (element.op) {
+				case 'M':
+				case 'D':
+				case 'N':
+				case 'EQ':
+				case 'X': this.alignEnd += element.count;break;
+				default:break;
+			   	}
+			  }
             	}
         return this.alignEnd;
-	}
+	};
 
 /* receive JSON data from server */
 function mycallback(JSONdata)
   {
   var y=0;
   var rows=[];
+  
   for(i in JSONdata.records)
   	{
   	var rec=new SamRecord(JSONdata.records[i]);
   	if(rec.isUnmapped()) continue;
-  	if(!rec.cigar || rec.cigar.length==0) continue;
+  	
+  	if(!rec.b.cigar || rec.b.cigar.length==0) continue;
+  	
   	for(y=0;y< rows.length;y++)
   		{
-  		var row=rows[i];
+  		var row=rows[y];
   		var last=row[row.length-1];
   		if(last.getAlignementEnd() < rec.getAlignementStart())
   			{
@@ -84,19 +95,105 @@ function mycallback(JSONdata)
   		var row=[];
   		row.push(rec);
   		rows.push(row);
+  		
+  		}
+  	}
+
+  var svgdoc=document.getElementById('svgdoc');
+  svgdoc.setAttribute("width",gconf.width);
+  svgdoc.setAttribute("height",gconf.rowHeigt * rows.length );
+  var svgroot=document.getElementById('svgbody');
+  while(svgroot.firstChild!=null) svgroot.removeChild(svgroot.firstChild);
+  for(y in rows)
+  	{
+  	var x;
+  	var row=rows[y];
+  	for(x=0;x< row.length;x++)
+  		{
+  		var rec=row[x];
+  		var E=document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  		E.setAttribute("title",rec.b.name);
+  		E.setAttribute("height",gconf.rowHeigt-1);
+  		E.setAttribute("x",gconf.baseToPixel(rec.getAlignementStart()));
+  		E.setAttribute("width",
+  			gconf.baseToPixel(rec.getAlignementEnd())-
+  			gconf.baseToPixel(rec.getAlignementStart())
+  			);
+  		E.setAttribute("y",gconf.rowHeigt*y);
+  		E.setAttribute("style","stroke:black;fill:url(#grad1);");
+  		svgroot.appendChild(E);
   		}
   	}
   }
+
+function parsePosition(s)
+	{
+	var colon=s.indexOf(':');
+	if(colon<1) return null;
+	var hyphen=s.indexOf('-');
+	if( hyphen !=-1 && hyphen <= colon) return null;
+	var ret= {
+		chrom:s.substr(0,colon),
+		pos: parseInt(hyphen==-1 ? s.substr(colon+1) : s.substr(colon,hyphen) ) 
+		};
+	if(isNaN(ret.pos) || ret.pos <0) return null;
+	return ret;
+	}
+
+/* send data to server */
+function invokejsonp()
+  {
+  gconf.width=parseInt(document.getElementById('width').value);
+  if(!isNaN(gconf.width)) gconf.width=1000;
+  
+
+  
+  var bamE=document.getElementById('bam');
+  var posE=document.getElementById('position');
+  var region=parsePosition(posE.value);
+  if(region==null)
+  	{
+  	document.getElementById('msg').innerHtml="BAD REGION";
+  	return ;
+  	}
+  gconf.chromStart=region.pos;
+   gconf.chromEnd=gconf.chromStart+100;
+  var prev=document.getElementById('jsonpid');
+  if(prev!=null) prev.parentNode.removeChild(prev);
+  var ext=document.createElement("script");
+  ext.setAttribute('id', 'jsonpid');
+	var url= bamE.value+'?format=json&limit=10&callback=mycallback&region='+
+  	region.chrom+":"+region.pos+"-"+(region.pos+100);
  
+  ext.setAttribute('src',url);
+  document.getElementsByTagName("head")[0].appendChild(ext);
+  
+  }
+
 </script>
 </head> 
 <body>
- <br style="line-height: 3em;" />
- <form style="text-align: center;" action="javascript:jsonp();">
+<label for="bam">BAM:</label> <input id="bam" name="bam" type="text" value="rf.bam"/><br/>
+<label for="position">Position:</label> <input id="position" type="text" name="position" value="RF01:100"/><br/>
+<label for="width">Width:</label> <input id="width" type="number" name="width" value="500"/><br/>
+<input type="submit" value="Submit" onclick="invokejsonp()"/><br/>
+<div id="msg"></div>
 
-  <input type="submit" value="Submit">
- </form>
+<svg	id="svgdoc"
+	xmlns="http://www.w3.org/2000/svg" version="1.1"
+	version="1.1" 
+	width="100px"
+	height="100px">
+	
+<linearGradient id="grad1" x1="50%" y1="0%" x2="50%" y2="100%">
+    <stop offset="0%" style="stop-color:darkgray;stop-opacity:1" />
+     <stop offset="50%" style="stop-color:white;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:darkgray;stop-opacity:1" />
+      </g>
+  </linearGradient>
+  <g id="svgbody"/>
+</svg>
 
-
+bottom
 </body>
 </html>
