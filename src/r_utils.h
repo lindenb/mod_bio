@@ -37,10 +37,11 @@ const char* HttpParamGet(const HttpParamPtr root,const char* key);
 
 /* xml */
 int ap_xmlPuts(const char* s,request_rec *r);
+int ap_xmlNPuts(const char* s,size_t n,request_rec *r);
 int ap_xmlPutc(char c,request_rec *r);
 /* json */
 int ap_jsonQuote(const char* s,request_rec *r);
-
+int ap_jsonNQuote(const char* s,size_t n,request_rec *r);
 
 /* debug */
 #define TRACEINFO(r,...) \

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:svg="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script type="text/javascript" language="javascript" src="hershey.js"></script>
+<script type="text/javascript" language="javascript">
+
+window.addEventListener("load", function load(event)
+	{
+	var canvasE=document.getElementById("thecanvas");
+	var ctx = canvasE.getContext("2d");
+	var font=new Hershey();
+	ctx.strokeStyle="color:black;";
+	ctx.lineWidth=0.5;
+	ctx.beginPath();
+	font.paint(ctx,"Tatcgatgggctatgat",0,0,300,400);
+	ctx.stroke();
+	ctx.closePath();
+	},false);
+</script>
+</head> 
+<body>
+a<br/>
+<canvas id="thecanvas" width="500" height="500"></canvas>
+<br/>b<br/>
+</body>
+</html>

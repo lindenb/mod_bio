@@ -1,3 +1,9 @@
+/**
+ * Author: Pierre Lindenbaum PhD
+ * April 2014
+ * Motivation: apache2 module for Bioinformatics
+ * WWW: http://github.com/lindenb/mod_bio
+ */
 #include <zlib.h>  
 #include <stdio.h> 
 #include <stdint.h> 

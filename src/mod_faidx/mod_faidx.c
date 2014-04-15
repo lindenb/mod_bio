@@ -155,9 +155,9 @@ static int jsonShow(
 	for(i=0;i< len;++i)
 	    {
 	    if(ap_rputc(seq[i],handler->r)==-1)
-		{
-		return -1;
-		}
+			{	
+			return -1;
+			}
 	    handler->length++;
 	    }
 	return 0;

@@ -127,15 +127,21 @@ int printDefaulthtmlHead(request_rec *r)
 
 int ap_xmlPuts(const char* s,request_rec *r)
 	{
-	const char*p=s;
-	if(r==NULL || s==NULL) return -1;
-	while(*p!=0)
-		{
-		if(ap_xmlPutc(*p,r)==-1) return -1;
-		++p;
-		}
-	return (int)(p-s);
+	return ap_xmlNPuts(s,(s==NULL?0UL:strlen(s)),r);
 	}
+
+int ap_xmlNPuts(const char* s,size_t n,request_rec *r)
+	{
+	size_t i=0;
+	if(r==NULL || s==NULL) return -1;
+	for(i=0;i< n;++i)
+		{
+		if(ap_xmlPutc(s[i],r)==-1) return -1;
+		}
+	return (int)n;
+	}
+
+
 int ap_xmlPutc(char c,request_rec *r)
 	{
 	switch(c)
@@ -151,25 +157,32 @@ int ap_xmlPutc(char c,request_rec *r)
 
 int ap_jsonQuote(const char* s,request_rec *r)
 	{
-	const char*p=s;
+	return ap_jsonNQuote(s,(s==NULL?0UL:strlen(s)),r);
+	}
+	
+int ap_jsonNQuote(const char* s,size_t n,request_rec *r)
+	{
+	size_t i=0;
 	if(s==NULL)
 		{
 		return ap_rputs("null",r);
 		}
+		
 	ap_rputc('\"',r);
-	while(*p!=0)
+	for(i=0;i< n;++i)
 		{
-		switch(*p)
+		char p = s[n];
+		switch(p)
 			{
 			case '\\': ap_rputs("\\\\",r); break;
 			case '\t': ap_rputs("\\t",r); break;
 			case '\n': ap_rputs("\\n",r); break;
 			case '\"': ap_rputs("\"",r); break;
-			default: ap_rputc(*p,r); break;
+			default: ap_rputc(p,r); break;
 			}
 		++p;
 		}
-	return ap_rputc('\"',r);
+	return n;
 	}
 
 int fileExists(const char* filename)
