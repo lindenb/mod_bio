@@ -41,33 +41,7 @@ function Bam2Raster()
     	}
     
    
-Bam2Raster.this.convertToX=function(genomic)
-	{
-	return this.WIDTH*(genomic-interval.getStart())/(double)(interval.getEnd()-interval.getStart()+1);
-	};
-	
-Bam2Raster.this.left=function(rec)
-	{
-	return this.convertToX(rec.getAlignmentStart());
-	};
 
-Bam2Raster.this.right=function(rec)
-	{
-	return this.convertToX(rec.getAlignmentEnd());
-	};
-	
-Bam2Raster.this.right=base2color=function(c)
-	{
-	switch(c)
-		{
-		case 'n':case 'N': return "black";
-		case 'a':case 'A': return "red";
-		case 't':case 'T': return "green";
-		case 'g':case 'G': return "yellow";
-		case 'c':case 'C': return "blue";
-		default: return "orange";
-		}
-	};
 	
 Bam2Raster.this.build=function(records)
 		{

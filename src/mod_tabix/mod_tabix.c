@@ -12,6 +12,8 @@
 #include "htslib/tbx.h"
 #include "r_utils.h"
 
+enum E_bio_format {E_FORMAT_UNDEFINED,E_FORMAT_BED,E_FORMAT_VCF};
+
 struct tabix_callback_t
 	{
 	/* incoming request */
@@ -25,7 +27,9 @@ struct tabix_callback_t
 	/* tabix handler */
 	tbx_t *tbx;
 	/* http params */
-    HttpParamPtr httParams;
+    	HttpParamPtr httParams;
+    	/** format flag */
+    	int file_format;
     
 	
 	void (*startdocument)( struct tabix_callback_t*);
@@ -112,15 +116,19 @@ static int xmlPrintBody(struct tabix_callback_t* handler,const kstring_t *line)
 		if(line->s[i]=='\t' || i==line->l)
 			{
 			ap_rputs("<td",handler->r);
-			if(n_field==handler->tbx->conf.sc)
+			if(n_field==0 && (handler->file_format==E_FORMAT_VCF || handler->file_format==E_FORMAT_BED))
 				{
 				ap_rputs(" type=\"chrom\"",handler->r);
 				}
-			else if(n_field==handler->tbx->conf.bc)
+			else if(n_field==1 && handler->file_format==E_FORMAT_VCF)
+				{
+				ap_rputs(" type=\"pos\"",handler->r);
+				}
+			else if(n_field==1 && handler->file_format==E_FORMAT_BED)
 				{
 				ap_rputs(" type=\"start\"",handler->r);
 				}
-			else if(n_field==handler->tbx->conf.ec)
+			else if(n_field==2 && handler->file_format==E_FORMAT_BED)
 				{
 				ap_rputs(" type=\"end\"",handler->r);
 				}
@@ -180,20 +188,69 @@ static void jsonStartBody( struct tabix_callback_t* handler)
 
 static int jsonPrintBody(struct tabix_callback_t* handler,const kstring_t *line)
 	{
-	int i,prev=0;
-	if(handler->count>0) ap_rputs(",",handler->r);
+	int i,prev=0,n_fields=0;
+	if(handler->count>0) ap_rputs(",\n",handler->r);
 	ap_rputs("[",handler->r);
 
 	for(i=0;i<= line->l;++i)
 		{
 		if(line->s[i]=='\t' || i==line->l)
 			{
-			ap_jsonNQuote(&(line->s)[prev],i-prev,handler->r);
+			if(n_fields>0) ap_rputc(',',handler->r);
+			if(handler->file_format==E_FORMAT_VCF)
+				{
+				switch(n_fields)
+					{
+					case 1: ap_rwrite(&(line->s)[prev],i-prev,handler->r);break;
+					case 5: {
+						if(i-prev==1 && (line->s)[prev]=='.')
+							{
+							ap_rputs("null",handler->r);
+							}
+						else
+							{
+							ap_rwrite((void*)&(line->s)[prev],i-prev,handler->r);
+							}
+						break;
+						}
+					default:
+						{
+						if(i-prev==1 && (line->s)[prev]=='.')
+							{
+							ap_rputs("null",handler->r);
+							}
+						else
+							{
+							ap_jsonNQuote(&(line->s)[prev],i-prev,handler->r);
+							}
+						break;
+						}
+					}
+				}
+			else if(handler->file_format==E_FORMAT_BED)
+				{
+				switch(n_fields)
+					{
+					case 1:
+					case 2: ap_rwrite(&(line->s)[prev],i-prev,handler->r);
+						break;
+					default:
+						ap_jsonNQuote(&(line->s)[prev],i-prev,handler->r);
+						break;
+						
+					}
+				}
+			else
+				{
+				ap_jsonNQuote(&(line->s)[prev],i-prev,handler->r);
+				}
+			
 			if(i==line->l) break;
 			prev=i+1;
+			++n_fields;
 			}
 		}
-	return ap_rputs("]\n",handler->r);
+	return ap_rputs("]",handler->r);
 	}
 
 
@@ -263,15 +320,19 @@ static int htmlPrintBody(struct tabix_callback_t* handler,const kstring_t *line)
 			int len=i-prev;
 			int only_digit=1,j;
 			ap_rputs("<td",handler->r);
-			if(n_field==handler->tbx->conf.sc)
+			if(n_field==0 && (handler->file_format==E_FORMAT_VCF || handler->file_format==E_FORMAT_BED))
 				{
 				ap_rputs(" class=\"tbxc\"",handler->r);
 				}
-			else if(n_field==handler->tbx->conf.bc)
+			else if(n_field==1 && handler->file_format==E_FORMAT_VCF)
+				{
+				ap_rputs(" class=\"tbxp\"",handler->r);
+				}
+			else if(n_field==1 && handler->file_format==E_FORMAT_BED)
 				{
 				ap_rputs(" class=\"tbxs\"",handler->r);
 				}
-			else if(n_field==handler->tbx->conf.ec)
+			else if(n_field==2 && handler->file_format==E_FORMAT_BED)
 				{
 				ap_rputs(" class=\"tbxe\"",handler->r);
 				}
@@ -371,14 +432,21 @@ static int tabix_handler(request_rec *r)
    
     if( !(
     	fileExtExists(r->canonical_filename,".tbi")
-       	))  return DECLINED;
+       	))  return 404;
    
     
    
     handler.httParams = HttpParamParseGET(r); 
     if(handler.httParams==NULL) return DECLINED;
-   
-   
+    handler.file_format=E_FORMAT_UNDEFINED;
+    if(str_ends_with(r->canonical_filename,".vcf.gz"))
+    	{
+    	handler.file_format=E_FORMAT_VCF;
+    	}
+    else if(str_ends_with(r->canonical_filename,".bed.gz"))
+    	{
+    	handler.file_format=E_FORMAT_BED;
+    	}
     
     /* only one loop, we use this to cleanup the code, instead of using a goto statement */
     do	{
@@ -449,6 +517,7 @@ static int tabix_handler(request_rec *r)
     	            {
 		    if ( !line.l || line.s[0]!=handler.tbx->conf.meta_char ) break;
 		    handler.header(&handler,&line);
+		    handler.count++;
     	            }
     	    handler.enddheader(&handler);
     	    }

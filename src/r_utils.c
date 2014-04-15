@@ -171,7 +171,7 @@ int ap_jsonNQuote(const char* s,size_t n,request_rec *r)
 	ap_rputc('\"',r);
 	for(i=0;i< n;++i)
 		{
-		char p = s[n];
+		char p = s[i];
 		switch(p)
 			{
 			case '\\': ap_rputs("\\\\",r); break;
@@ -180,8 +180,8 @@ int ap_jsonNQuote(const char* s,size_t n,request_rec *r)
 			case '\"': ap_rputs("\"",r); break;
 			default: ap_rputc(p,r); break;
 			}
-		++p;
 		}
+	ap_rputc('\"',r);
 	return n;
 	}
 
@@ -190,10 +190,10 @@ int fileExists(const char* filename)
     struct stat buf;
     /*  lstat() is identical to stat(), except that if path is a symbolic link,
        then the link itself is stat-ed, not the file that it refers to. */
-    if(lstat(filename,&buf)!=0) return HTTP_NOT_FOUND;
-    if(!S_ISREG(buf.st_mode)) return HTTP_BAD_REQUEST;
+    if(lstat(filename,&buf)!=0) return 0;
+    if(!S_ISREG(buf.st_mode)) return 0;
     //if(!S_IRUSR(buf.st_mode)) return HTTP_FORBIDDEN;
-    return OK;
+    return 1;
     }
 
 int fileExtExists(const char* filename,const char* suffix)
@@ -206,7 +206,7 @@ int fileExtExists(const char* filename,const char* suffix)
     memcpy((void*)p,(void*)filename,len1);
     memcpy((void*)&p[len1],(void*)suffix,len2);
     p[len1+len2]=0;
-    ret=fileExists(filename);
+    ret=fileExists(p);
     free(p);
     return ret;
     }
