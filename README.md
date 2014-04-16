@@ -468,20 +468,59 @@ myfun({"header":["##fileformat=VCFv4.1",
 
 ## Installation
 
+Install :
+
+***apxs2*** must be installed ( http://httpd.apache.org/docs/2.4/en/programs/apxs.html )
 
 
-
-![with](with_htaccess.jpg?raw=true)
-
-![without](no_htaccess.jpg?raw=true)
+```bash
+$ sudo apt-get install apache2-threaded-dev
+```
 
 
 Clone the project
 
+```bash
+$ git clone "https://github.com/lindenb/mod_bio.git"
+Cloning into mod_bio...
+remote: Counting objects: 189, done.
+remote: Compressing objects: 100% (130/130), done.
+remote: Total 189 (delta 82), reused 124 (delta 20)
+Receiving objects: 100% (189/189), 632.94 KiB | 697 KiB/s, done.
+Resolving deltas: 100% (82/82), done.
+```
 
-$ git clone  "https://github.com/lindenb/mod_bio.git"
+or for a specific branch...
+```bash
+$ git clone --branch dev "https://github.com/lindenb/mod_bio.git"
+```
+
+
+cd in mod_bio
+```bash
+$ cd mod_bio
+```
+
+initialize the submodule htslib
+
+```bash
 $ git submodule update --init --recursive
+Submodule 'htslib' (https://github.com/samtools/htslib.git) registered for path 'htslib'
+Cloning into htslib...
+remote: Reusing existing pack: 4012, done.
+remote: Total 4012 (delta 0), reused 0 (delta 0)
+Receiving objects: 100% (4012/4012), 3.31 MiB | 294 KiB/s, done.
+Resolving deltas: 100% (2420/2420), done.
+Submodule path 'htslib': checked out 'bd6ed8b4b109d27fdca4add7964637f7de2d0b02'
+```
 
-## Setup Apache Directory Listing
+compile with ***GNU-make*** :
+
+* Compiling htslib will install the dynamic library ***libhts.so*** in the directory $LIBDIR which is `/usr/local/lib` : the user should have the right to write in /usr/local/lib . 
+* Make will install some resources under ```/var/www/mod_bio```
+
+
+
+
 
 
