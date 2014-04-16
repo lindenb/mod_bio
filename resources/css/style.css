@@ -28,7 +28,14 @@ button:hover	{
 		 max-height: 200px;
 		  overflow: auto;
 		 }
-.filebody{margin-top:30px;white-space:pre;font-family:monospace; border:2px solid;background-color:white;}
+.filebody{
+	padding:5px;
+	margin-top:30px;
+	white-space:pre;
+	font-family:monospace;
+	border:1px solid black;
+	background-color:white;
+	}
 .ba{color:red;}
 .bt{color:green;}
 .bg{color:yellow;}

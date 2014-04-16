@@ -1,14 +1,12 @@
-/* 	
-	private static class PathOp
-		{
-		Op operator;
-		double x;
-		double y;
-		toString()
-			{
-			return "("+operator+","+x+","+y+")";
-			}
-		} */
+/**
+Author: Pierre Lindenbaum PhD
+	@yokofakun
+	http://plindenbaum.blogspot.com
+Date: April 2014
+
+The MIT License.
+
+**/
 
 function Hershey()
 	{

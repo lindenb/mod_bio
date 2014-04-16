@@ -1,4 +1,12 @@
+/**
+Author: Pierre Lindenbaum PhD
+	@yokofakun
+	http://plindenbaum.blogspot.com
+Date: April 2014
 
+The MIT License.
+
+**/
 function GenomeBrowser()
 	{
 	this.chromLength=100;
@@ -31,9 +39,11 @@ function GenomeBrowser()
 		};
 	this.hershey=new Hershey();
 	}
-	
+
+/** the browser oject*/
 var gBrowse=new GenomeBrowser();
 
+/* pretty print a number, with commas */
 GenomeBrowser.prototype.niceNumber=function(n)
 	{
 	var y = "";
@@ -46,6 +56,7 @@ GenomeBrowser.prototype.niceNumber=function(n)
 	return y;
 	}
 
+/* convert position to pixel */
 GenomeBrowser.prototype.baseToPixel=function(pos)
 	{
 	return ((pos-this.interval.start)/(this.interval.end-this.interval.start))*this.width;
@@ -387,6 +398,9 @@ GenomeBrowser.prototype.paint=function(records)
 	
 	var titleE=document.getElementById("browserTitle");
 	titleE.innerHTML=this.interval.chrom+":"+this.interval.start+"-"+this.interval.end;
+	var titleE=document.getElementById("interval");
+	titleE.value=this.interval.chrom+":"+this.interval.start;
+	
 	}
 		
 

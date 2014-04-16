@@ -468,10 +468,13 @@ myfun({"header":["##fileformat=VCFv4.1",
 
 ## Installation
 
-Install :
+The following installation was tested under::
 
-***apxs2*** must be installed ( http://httpd.apache.org/docs/2.4/en/programs/apxs.html )
-
+* GNU gcc 4.6.3 
+* apache2 2.2.22 (Ubuntu)
+* Make 3.81.1
+* ***apxs2*** must be installed ( http://httpd.apache.org/docs/2.4/en/programs/apxs.html )
+* libtool seems to be required, apxs2 used one under /usr/share/apr-1.0/build/
 
 ```bash
 $ sudo apt-get install apache2-threaded-dev

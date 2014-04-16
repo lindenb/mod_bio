@@ -1,3 +1,10 @@
+/**
+ * Author: Pierre Lindenbaum PhD
+ * April 2014
+ * Motivation: apache2 module for Bioinformatics
+ * WWW: http://github.com/lindenb/mod_bio
+ */
+
 #include <zlib.h>  
 #include <stdio.h> 
 #include <stdint.h>  
@@ -5,8 +12,7 @@
 #include "r_utils.h"
 
 
-
-
+/** handlers & callback for faidx */
 struct faidx_callback_t
 	{
 	request_rec *r;
@@ -312,7 +318,7 @@ static int faidx_handler(request_rec *r)
     
     /* only one loop, we use this to cleanup the code, instead of using a goto statement */
     do	{
-		const char* format=HttpParamGet(httParams,"format");
+	const char* format=HttpParamGet(httParams,"format");
     	const char* region=HttpParamGet(httParams,"region");
 		
     	if(format==NULL)
@@ -360,7 +366,7 @@ static int faidx_handler(request_rec *r)
 				{
 				int ret=0;
 			        int len=0;
-				int p_next=MIN(p_curr+1000,handler.region.p_end_i0);
+				int p_next=MIN(p_curr+BUFSIZ,handler.region.p_end_i0);
 				char* dnastring= faidx_fetch_seq(faidx,
 				    handler.region.chromosome,
 				    p_curr,
