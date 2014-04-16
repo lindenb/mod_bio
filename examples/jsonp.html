@@ -4,8 +4,8 @@
       xmlns:xlink="http://www.w3.org/1999/xlink"
       >
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>JSONP Test</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>JSONP Genome Browser</title>
 <style type='text/css'>
 body	{
 	color:rgb(50,50,50);
@@ -22,7 +22,13 @@ button	{
 	}
 button:hover	{
 	background-image:-moz-linear-gradient( top, lightgray, gray );
-	} 
+	}
+.me 	{
+	padding-top:100px; font-size:80%;
+	}
+canvas {
+	image-rendering:-moz-optimizeQuality;
+	}
 </style>
 <script type="text/javascript" language="javascript" src="hershey.js"></script>
 <script type="text/javascript" language="javascript" src="samtools.js"></script>
@@ -37,17 +43,18 @@ button:hover	{
 <button onclick="moveView(-1,0.475);" title="move 47% left">&#x21D0;</button>
 <button onclick="moveView(-1,0.1);" title="move 10% left">&#x2190;</button>
 <label for="interval" title="chrom:pos">Position:</label>
-<input id="interval" size="12"  title="position or start-end or gene name or gene proteinID" placeholder="chr:pos" value="RF01:100"/>
-<input type="submit" value="Go" onclick="invokejsonp()"/>
+<input id="interval" size="12"  title="position or start-end or gene name or gene proteinID" placeholder="chr:pos" value="RF01:21"/>
+<button onclick="invokejsonp()">Go</button>
 <button onclick="moveView(1,0.1);" title="move 10% right">&#x2192;</button>
 <button onclick="moveView(1,0.475);" title="move 47% right">&#x21D2;</button>
 <button onclick="moveView(1,0.95);" title="move 95% right">&#x21DB;</button>
 </div>
-<div>
+
 
 
 <div id="msg"></div>
 <div style="text-align:center;"><canvas id="canvasdoc" width="1000" height="300"></canvas></div>
-<div>Pierre Lindenbaum PhD.</div>
+</div>
+<div class="me"><a href="http://plindenbaum.blogspot.com">Pierre Lindenbaum PhD.</a> 2014. <a href="https://github.com/lindenb/mod_bio">https://github.com/lindenb/mod_bio</a></div>
 </body>
 </html>

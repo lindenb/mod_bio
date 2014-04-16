@@ -25,12 +25,18 @@ IndexIgnore header.html footer.html .htaccess
 
 
 AddIcon /icons/compressed.gif .bam
-AddIcon /icons/compressed.gif .fastq
-AddIcon /icons/compressed.gif x.example
+
+
 
 #
 # Adding Descriptions to Folders and Files
 #
 AddDescription "Binary Sequence Alignment Map <a href='http://samtools.github.io/hts-specs/SAMv1.pdf' target='_blank'>(BAM)</a>" .bam
-AddDescription "Sequence Alignment Map <a href='http://samtools.github.io/hts-specs/SAMv1.pdf' target='_blank'>(SAM)</a>" .bam
+AddDescription "BAM Index</a>" .bai
+AddDescription "Sequence Alignment Map <a href='http://samtools.github.io/hts-specs/SAMv1.pdf' target='_blank'>(SAM)</a>" .sam
 AddDescription "<a href='http://en.wikipedia.org/wiki/FASTQ_format' target='_blank'>FastQ</a>" .fastq
+AddDescription "<a href='http://en.wikipedia.org/wiki/FASTQ_format' target='_blank'>FastQ</a>" .fq
+AddDescription "<a href='http://genome.ucsc.edu/FAQ/FAQformat.html#format1' target='_blank'>BED</a> file" .bed
+AddDescription "<a href='http://samtools.github.io/hts-specs/' target='_blank'>VCF (Variant Call Format)</a> file" .vcf
+AddDescription "Tabix index file" .tbi
+AddDescription "samtools faidx index file" .fai

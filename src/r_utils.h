@@ -17,6 +17,24 @@
 #define MAX(a,b) (a>b?a:b)
 #endif
 
+
+#ifndef TRUE
+#define TRUE (1)
+#endif
+#ifndef FALSE
+#define FALSE (0)
+#endif
+#ifndef true
+#define true TRUE
+#endif
+#ifndef false
+#define false FALSE
+#endif
+#ifndef null
+#define null NULL
+#endif
+
+
 /* max number of records to be fetched */
 #define DEFAULT_LIMIT_RECORDS 100 
 

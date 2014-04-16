@@ -64,7 +64,7 @@ static int plainShow(
 static void xmlStart( struct faidx_callback_t* handler)
 	{
 	ap_set_content_type(handler->r, "text/xml");
-	ap_rputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<faidx>\n<sequence ",handler->r);
+	ap_rputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<faidx  git-version=\"" MOD_BIO_VERSION "\">\n<sequence ",handler->r);
 	if(handler->region.chromosome!=NULL)
 	    {
 	    ap_rputs(" chrom=\"",handler->r);
@@ -266,7 +266,17 @@ static void register_hooks(apr_pool_t *pool)
     	ap_hook_handler(faidx_handler, NULL, NULL, APR_HOOK_LAST);
 	}
 
+#define SETUP_HANDLER(prefix)\
+	handler.startdocument= prefix ## Start;\
+	handler.enddocument= prefix ## End;\
+	handler.show=prefix ## Show
+    	 	
 
+
+/**
+ * workhorse methods for FAIDX
+ *
+ */
 static int faidx_handler(request_rec *r)
     {
     struct faidx_callback_t handler;
@@ -287,14 +297,14 @@ static int faidx_handler(request_rec *r)
         str_ends_with(r->canonical_filename,".fa")
        	))  return DECLINED;
     /* check file exists */
-    if((http_status=fileExists(r->canonical_filename))!=OK)
-	{
-	return http_status;
-	}
+    if(!fileExists(r->canonical_filename))
+		{
+		return HTTP_NOT_FOUND;
+		}
     /* check fasta index exist */
-    if((http_status=fileExtExists(r->canonical_filename,".fai"))!=OK)
+    if(!fileExtExists(r->canonical_filename,".fai"))
     	{
-    	return http_status;
+    	return DECLINED;
     	}
     httParams = HttpParamParseGET(r); 
     if(httParams==NULL) return DECLINED;
@@ -302,9 +312,9 @@ static int faidx_handler(request_rec *r)
     
     /* only one loop, we use this to cleanup the code, instead of using a goto statement */
     do	{
-	const char* format=HttpParamGet(httParams,"format");
+		const char* format=HttpParamGet(httParams,"format");
     	const char* region=HttpParamGet(httParams,"region");
-
+		
     	if(format==NULL)
     		{
     		http_status=DECLINED;
@@ -312,28 +322,20 @@ static int faidx_handler(request_rec *r)
     		}
     	 else if(strcmp(format,"xml")==0)
     	 	{
-    	 	handler.startdocument= xmlStart;
-    	 	handler.enddocument= xmlEnd;
-    	 	handler.show= xmlShow;
+    	 	SETUP_HANDLER(xml);
     	 	}
     	 else if(strcmp(format,"json")==0 || strcmp(format,"jsonp")==0)
     	 	{
     	 	handler.jsonp_callback=HttpParamGet(httParams,"callback");
-    	 	handler.startdocument= jsonStart;
-    	 	handler.enddocument= jsonEnd;
-    	 	handler.show= jsonShow;
+    	 	SETUP_HANDLER(json);
     	 	}
     	 else if(strcmp(format,"html")==0)
     	 	{
-    	 	handler.startdocument= htmlStart;
-    	 	handler.enddocument= htmlEnd;
-    	 	handler.show= htmlShow;
+    	 	SETUP_HANDLER(html);
     	 	}
     	 else
     	 	{
-    	 	handler.startdocument= plainStart;
-    	 	handler.enddocument= plainEnd;
-    	 	handler.show= plainShow;
+	    	SETUP_HANDLER(plain);
     	 	}
     	
 
@@ -344,42 +346,38 @@ static int faidx_handler(request_rec *r)
     		break;
     		}
 
-    	if(region!=NULL)
+    	if(region!=NULL && !str_is_empty(region))
     	    {
-    	    if(parseRegion(region,&(handler.region))!=0)
-    		{
-    		http_status=HTTP_BAD_REQUEST;
-    		break;
-    		}
-    	    }
+    	    parseRegion(region,&(handler.region));
+	    	}
 
 
     	handler.startdocument(&handler);
-    	if(region!=NULL)
+    	if(handler.region.chromosome!=NULL)
     	    {
-	    int p_curr=handler.region.p_beg_i0;
-	    while(p_curr<= handler.region.p_end_i0)
-		{
-		int ret=0;
-	        int len=0;
-		int p_next=MIN(p_curr+1000,handler.region.p_end_i0);
-		char* dnastring= faidx_fetch_seq(faidx,
-		    handler.region.chromosome,
-		    p_curr,
-		    p_next
-		    ,&len);
-		if(dnastring==NULL) break;
-		if(len>0)
-		    {
-		    ret=handler.show(&handler,dnastring,len);
-		    }
-		free(dnastring);
-		if(len<(p_next-p_curr)) break;
-		p_curr+=len;
-		if(ret<0) break;
-		}
+	   		int p_curr=handler.region.p_beg_i0;
+	   	 	while(p_curr<= handler.region.p_end_i0)
+				{
+				int ret=0;
+			        int len=0;
+				int p_next=MIN(p_curr+1000,handler.region.p_end_i0);
+				char* dnastring= faidx_fetch_seq(faidx,
+				    handler.region.chromosome,
+				    p_curr,
+				    p_next
+				    ,&len);
+				if(dnastring==NULL) break;
+				if(len>0)
+				    {
+				    ret=handler.show(&handler,dnastring,len);
+				    }
+				free(dnastring);
+				if(len<(p_next-p_curr)) break;
+				p_curr+=len;
+				if(ret<0) break;
+				}
     	    }
-	handler.enddocument(&handler);
+		handler.enddocument(&handler);
     	} while(0);/* always abort */
     
     

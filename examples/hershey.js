@@ -69,8 +69,8 @@ Hershey.prototype.charToHersheyString=function(c)
 			c.toUpperCase().charCodeAt(0)<="Z".charCodeAt(0)
 			)
 			{
-
-			return this.LETTERS[c.toUpperCase(c).charCodeAt(0)-'A'.charCodeAt(0)];
+			var idx=c.toUpperCase().charCodeAt(0)-'A'.charCodeAt(0);
+			return this.LETTERS[idx];
 			}
 		if(	c.charCodeAt(0)>="0".charCodeAt(0) && 
 			c.charCodeAt(0)<="9".charCodeAt(0)
@@ -151,7 +151,7 @@ Hershey.prototype.charToPathOp=function(letter)
 Hershey.prototype.paint=function(ctx,s,x,y,width,height)
 	{
 	if(s==null || s.length==0 || width==0 || height==0) return "";
-
+	
 	var i,dx=width/s.length;
 	for(i=0;i < s.length;++i)
 		{
@@ -175,5 +175,6 @@ Hershey.prototype.paint=function(ctx,s,x,y,width,height)
 			}
 		
 		}
+	
 	};
 

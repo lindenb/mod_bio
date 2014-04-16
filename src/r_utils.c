@@ -119,6 +119,8 @@ int printDefaulthtmlHead(request_rec *r)
 	{
 	ap_rputs("<meta charset=\"utf-8\"/>",r);
 	ap_rputs("<meta name=\"description\" content=\"mod_bio\"/>\n",r);
+	ap_rputs("<meta name=\"git-version\" content=\"" MOD_BIO_VERSION "\">"
+	    	"<meta name=\"hts-version\" content=\"" HTS_VERSION "\">",r);
 	ap_rputs("<title>",r);
 	ap_xmlPuts(r->uri,r);
 	ap_rputs("</title>",r);	
@@ -190,10 +192,10 @@ int fileExists(const char* filename)
     struct stat buf;
     /*  lstat() is identical to stat(), except that if path is a symbolic link,
        then the link itself is stat-ed, not the file that it refers to. */
-    if(lstat(filename,&buf)!=0) return 0;
-    if(!S_ISREG(buf.st_mode)) return 0;
-    //if(!S_IRUSR(buf.st_mode)) return HTTP_FORBIDDEN;
-    return 1;
+    if(lstat(filename,&buf)!=0) return FALSE;
+    if(!S_ISREG(buf.st_mode)) return FALSE;
+    //if(!S_IRUSR(buf.st_mode)) return FALSE;
+    return TRUE;
     }
 
 int fileExtExists(const char* filename,const char* suffix)
@@ -202,7 +204,7 @@ int fileExtExists(const char* filename,const char* suffix)
     size_t len1=strlen(filename);
     size_t len2=strlen(suffix);
     char* p=(char*)malloc(len1+len2+1);
-    if(p==NULL) return HTTP_INTERNAL_SERVER_ERROR;
+    if(p==NULL) return FALSE;
     memcpy((void*)p,(void*)filename,len1);
     memcpy((void*)&p[len1],(void*)suffix,len2);
     p[len1+len2]=0;

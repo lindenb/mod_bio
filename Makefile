@@ -84,7 +84,12 @@ _priv_example:
 	cp examples/.htaccess \
 	   examples/rf.* \
 	   examples/out*.fq.gz \
-	   examples/footer.html \
-	   examples/jsonp.html \
-	   	~/public_html/modules/
+	  examples/bam2raster.js \
+	examples/hershey.js \
+	examples/jsonp.js \
+	examples/samtools.js \
+	examples/footer.html \
+	examples/hershey.html \
+	examples/jsonp.html \
+	~/public_html/modules/
 

@@ -398,17 +398,19 @@ static void register_hooks(apr_pool_t *pool)
 	}
 
 #define SETUP_HANDLER(prefix)\
-handler.startdocument= prefix ## StartDocument;\
-handler.enddocument= prefix ## EndDocument;\
-handler.startbody=prefix ## StartBody;\
-handler.endbody=prefix ## EndBody;;\
-handler.show= prefix ## PrintBody;\
-handler.startheader=prefix ## StartHeader;\
-handler.enddheader=prefix ## EndHeader;\
-handler.header= prefix ## PrintHeader;
+	handler.startdocument= prefix ## StartDocument;\
+	handler.enddocument= prefix ## EndDocument;\
+	handler.startbody=prefix ## StartBody;\
+	handler.endbody=prefix ## EndBody;;\
+	handler.show= prefix ## PrintBody;\
+	handler.startheader=prefix ## StartHeader;\
+	handler.enddheader=prefix ## EndHeader;\
+	handler.header= prefix ## PrintHeader;
     	 	
 
-
+/**
+ * tabix workhorse function
+ */
 static int tabix_handler(request_rec *r)
     {
     htsFile *fp=NULL;
@@ -426,10 +428,11 @@ static int tabix_handler(request_rec *r)
     if (!r->handler || strcmp(r->handler, "tabix-handler")) return (DECLINED);
     if (strcmp(r->method, "GET")!=0) return DECLINED;
     if(r->canonical_filename==NULL)  return DECLINED;
+     /* file must be b-gzipped */
     if( !(
     	str_ends_with(r->canonical_filename,".gz")
        	))  return DECLINED;
-   
+    /* file must be indexed with tabix */
     if( !(
     	fileExtExists(r->canonical_filename,".tbi")
        	))  return 404;
@@ -453,7 +456,7 @@ static int tabix_handler(request_rec *r)
     	const char* format=HttpParamGet(handler.httParams,"format");
     	const char* limit=HttpParamGet(handler.httParams,"limit");
     	const char* region=HttpParamGet(handler.httParams,"region");
-    	
+    	int iterator_was_requested=FALSE;
     	
     	
     	if(limit!=NULL)
@@ -488,7 +491,7 @@ static int tabix_handler(request_rec *r)
     	fp=hts_open(r->canonical_filename,"r");
     	if(fp==NULL)
     		{
-    		http_status=HTTP_INTERNAL_SERVER_ERROR;
+    		http_status=HTTP_NOT_FOUND;
     		break;
     		}
     	//read index
@@ -500,15 +503,11 @@ static int tabix_handler(request_rec *r)
 			}
     	if(region!=NULL && !str_is_empty(region))
     		{
+    		iterator_was_requested=TRUE;
     		itr = tbx_itr_querys(handler.tbx,region);
-    		if(itr==NULL)
-    		    {
-    		    http_status=HTTP_INTERNAL_SERVER_ERROR;
-    		    break;
-    		    }
     		}
 
-
+	
     	handler.startdocument(&handler);
     	if(print_header)
     	    {
@@ -525,25 +524,28 @@ static int tabix_handler(request_rec *r)
     	if(print_body)
     	    {
     	    handler.startbody(&handler);
-	    if(itr!=NULL)
-		{
-		while ((handler.limit==-1 || handler.count< handler.limit) && tbx_itr_next(fp, handler.tbx, itr, &line) >= 0)
-			{
-			if(handler.show(&handler,&line)<0) break;
-			handler.count++;
-			}
-
-		}
-	    else
-		{
-		while ((handler.limit==-1 || handler.count< handler.limit) && \
-			hts_getline(fp, KS_SEP_LINE, &line) >= 0)
-			{
-			if(handler.show(&handler,&line)<0) break;
-			handler.count++;
-			}
-		}
-	    handler.endbody(&handler);
+		    if(iterator_was_requested)
+				{
+				if(itr!=NULL)
+					{
+					while ((handler.limit==-1 || handler.count< handler.limit) && tbx_itr_next(fp, handler.tbx, itr, &line) >= 0)
+						{
+						if(handler.show(&handler,&line)<0) break;
+						handler.count++;
+						}
+					}
+		
+				}
+		    else
+				{
+				while ((handler.limit==-1 || handler.count< handler.limit) && \
+					hts_getline(fp, KS_SEP_LINE, &line) >= 0)
+					{
+					if(handler.show(&handler,&line)<0) break;
+					handler.count++;
+					}
+				}
+	   	 handler.endbody(&handler);
     	    }
 	handler.enddocument(&handler);
     	} while(0);/* always abort */

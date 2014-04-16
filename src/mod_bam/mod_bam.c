@@ -181,10 +181,12 @@ int print_aux_data(struct aux_callback_t* callback, const  bam1_t *b)
 
 /** XML handlers ***************************************************/
 
+
 static void xmlStart( struct bam_callback_t* handler)
 	{
 	ap_set_content_type(handler->r, "text/xml");
-	ap_rputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<sam-file>\n<header>",handler->r);
+	ap_rputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+		"<sam-file git-version=\"" MOD_BIO_VERSION "\">\n<header>",handler->r);
 	ap_xmlPuts(handler->header->text,handler->r);
 	ap_rputs("</header><records>",handler->r);
 	}
@@ -655,7 +657,15 @@ static void register_hooks(apr_pool_t *pool)
     	ap_hook_handler(bam_handler, NULL, NULL, APR_HOOK_LAST);
 	}
 
+#define SETUP_HANDLER(prefix)\
+	handler.startdocument= prefix ## Start;\
+	handler.enddocument= prefix ## End;\
+	handler.show=prefix ## Show
 
+/**
+ * Workhorse  method for BAM
+ *
+ */
 static int bam_handler(request_rec *r)
     {
     struct bam_callback_t handler;
@@ -672,13 +682,11 @@ static int bam_handler(request_rec *r)
     if (!r->handler || strcmp(r->handler, "bam-handler")) return (DECLINED);
     if (strcmp(r->method, "GET")!=0) return DECLINED;
     if(r->canonical_filename==NULL)  return DECLINED;
-    if( !(
-    	str_ends_with(r->canonical_filename,".bam")
-       	))  return DECLINED;
+    if(!str_ends_with(r->canonical_filename,".bam"))  return DECLINED;
     /* check file exists */
-    if((http_status=fileExists(r->canonical_filename))!=OK)
+    if(!fileExists(r->canonical_filename))
 		{
-		return http_status;
+		return HTTP_NOT_FOUND;
 		}
 
 	handler.r=r;
@@ -692,6 +700,7 @@ static int bam_handler(request_rec *r)
 	const char* format=HttpParamGet(handler.httParams,"format");
 	const char* limit_str=HttpParamGet(handler.httParams,"limit");
     handler.region=HttpParamGet(handler.httParams,"region");
+    int iterator_was_requested=FALSE;
 
     	b=bam_init1();
     	if(b==NULL)
@@ -711,28 +720,20 @@ static int bam_handler(request_rec *r)
     		}
     	 else if(strcmp(format,"xml")==0)
     	 	{
-    	 	handler.startdocument= xmlStart;
-    	 	handler.enddocument= xmlEnd;
-    	 	handler.show= xmlShow;
+    	 	SETUP_HANDLER(xml);
     	 	}
     	 else if(strcmp(format,"json")==0 || strcmp(format,"jsonp")==0)
     	 	{
     	 	handler.jsonp_callback=HttpParamGet(handler.httParams,"callback");
-    	 	handler.startdocument= jsonStart;
-    	 	handler.enddocument= jsonEnd;
-    	 	handler.show= jsonShow;
+    	 	SETUP_HANDLER(json);
     	 	}
     	 else if(strcmp(format,"html")==0)
     	 	{
-    	 	handler.startdocument= htmlStart;
-    	 	handler.enddocument= htmlEnd;
-    	 	handler.show= htmlShow;
+    	 	SETUP_HANDLER(html);
     	 	}
     	 else
     	 	{
-    	 	handler.startdocument= plainStart;
-    	 	handler.enddocument= plainEnd;
-    	 	handler.show= plainShow;
+    	 	SETUP_HANDLER(plain);
     	 	}
     	
 
@@ -753,18 +754,13 @@ static int bam_handler(request_rec *r)
 
     	if(handler.region!=NULL && !str_is_empty(handler.region))
     	    {
+    	    iterator_was_requested=TRUE;
     	    idx = bam_index_load(r->canonical_filename);
-    	    if(idx==NULL)
+    	    if(idx!=NULL)
 	    		{
-	    		http_status=HTTP_INTERNAL_SERVER_ERROR;
-	    		break;
+	    		iter = bam_itr_querys(idx, handler.header, handler.region);
 	    		}
-    	    iter = bam_itr_querys(idx, handler.header, handler.region);
-    	    if(iter==NULL)
-	    		{
-	    		http_status=HTTP_BAD_REQUEST;
-	    		break;
-	    		}
+    	   
     	    }
 
 
@@ -772,14 +768,18 @@ static int bam_handler(request_rec *r)
     	 while(limit==-1  || handler.count<limit)
     	     {
     	     int r;
-		     if(iter==NULL)
+		     if(!iterator_was_requested)
 				 {
 				 r = sam_read1(handler.samFile, handler.header, b);
 				 }
-		     else
+		     else if(iter!=NULL)
 				 {
 				 r = bam_itr_next(handler.samFile, iter, b);
 				 }
+			 else
+			 	{
+			 	r=-1;
+			 	}
 		     if(r<0) break;
 		     if(handler.show(&handler,b)<0) break;
 		     handler.count++;
