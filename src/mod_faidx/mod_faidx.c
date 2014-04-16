@@ -202,7 +202,7 @@ static void htmlStart( struct faidx_callback_t* handler)
 		    handler->region.p_beg_i0,
 		    handler->region.p_end_i0
 		);
-	    ap_rputs("</h3><div class='faidx'>",handler->r);
+	    ap_rputs("</h3><div class='filebody'>",handler->r);
 	    }
 	}
 

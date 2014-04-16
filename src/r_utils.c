@@ -179,12 +179,12 @@ int ap_jsonNQuote(const char* s,size_t n,request_rec *r)
 			case '\\': ap_rputs("\\\\",r); break;
 			case '\t': ap_rputs("\\t",r); break;
 			case '\n': ap_rputs("\\n",r); break;
-			case '\"': ap_rputs("\"",r); break;
+			case '\"': ap_rputs("\\\"",r); break;
 			default: ap_rputc(p,r); break;
 			}
 		}
 	ap_rputc('\"',r);
-	return n;
+	return (int)n;
 	}
 
 int fileExists(const char* filename)

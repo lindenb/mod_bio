@@ -161,7 +161,7 @@ static void htmlStart( struct fastq_callback_t* handler)
 		"<label for='limit'>Limit:</label> <input id='limit' name='limit' type='number' value='10'/> <input type='submit'/></form>"
 		,handler->r);
 		
-	ap_rputs("<div class='fastqs'>",handler->r);
+	ap_rputs("<div class='filebody'>",handler->r);
 	}
 
 

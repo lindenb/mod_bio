@@ -75,8 +75,7 @@ static void xmlStartDocument( struct tabix_callback_t* handler)
 	{
 	ap_set_content_type(handler->r, "text/xml");
 	ap_rputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-		"<!-- version " MOD_BIO_VERSION "-->\n"
-		"<tabix-file>\n",handler->r);
+		"<tabix-file git-version=\"" MOD_BIO_VERSION "\">\n",handler->r);
 	}
 
 static void xmlEndDocument( struct tabix_callback_t* handler)
@@ -156,12 +155,21 @@ static void xmlEndBody( struct tabix_callback_t* handler)
 static void jsonStartDocument( struct tabix_callback_t* handler)
 	{
 	ap_set_content_type(handler->r,MIME_TYPE_JSON);
+	if(handler->jsonp_callback!=NULL)
+		{
+		ap_rputs(handler->jsonp_callback,handler->r);
+		ap_rputc('(',handler->r);
+		}
 	ap_rputs("{",handler->r);
 	}
 
 static void jsonEndDocument( struct tabix_callback_t* handler)
 	{
 	ap_rputs("}\n",handler->r);
+	if(handler->jsonp_callback!=NULL)
+		{
+		ap_rputs(");\n",handler->r);
+		}
 	}
 
 static void jsonStartHeader( struct tabix_callback_t* handler)
@@ -289,7 +297,7 @@ static void htmlEndDocument( struct tabix_callback_t* handler)
 
 static void htmlStartHeader( struct tabix_callback_t* handler)
 	{
-	ap_rputs("<h3>Header</h3><div>",handler->r);
+	ap_rputs("<h3>Header</h3><div class=\"fileheader\">",handler->r);
 	}
 
 static int htmlPrintHeader(struct tabix_callback_t* handler,const kstring_t *line)
@@ -306,7 +314,7 @@ static void htmlEndHeader( struct tabix_callback_t* handler)
 
 static void htmlStartBody( struct tabix_callback_t* handler)
 	{
-	ap_rputs("<hr/><table>",handler->r);
+	ap_rputs("<div class=\"filebody\"><table>",handler->r);
 	}
 
 static int htmlPrintBody(struct tabix_callback_t* handler,const kstring_t *line)
@@ -371,7 +379,7 @@ static int htmlPrintBody(struct tabix_callback_t* handler,const kstring_t *line)
 
 static void htmlEndBody( struct tabix_callback_t* handler)
 	{
-	ap_rputs("</table>",handler->r);
+	ap_rputs("</table></div>",handler->r);
 	}
 
 /* Define prototypes of our functions in this module */

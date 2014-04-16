@@ -40,3 +40,5 @@ AddDescription "<a href='http://genome.ucsc.edu/FAQ/FAQformat.html#format1' targ
 AddDescription "<a href='http://samtools.github.io/hts-specs/' target='_blank'>VCF (Variant Call Format)</a> file" .vcf
 AddDescription "Tabix index file" .tbi
 AddDescription "samtools faidx index file" .fai
+AddDescription "Fasta Sequence File" .fa
+AddDescription "Fasta Sequence File" .fasta
