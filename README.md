@@ -1,21 +1,43 @@
+***mod_bio*** is a set of ***Apache modules*** ( http://httpd.apache.org/modules/ ) for Bioinformatics based on the <a href="https://github.com/samtools/htslib">htslib C</a> library. It provides a quick way to explore bioinformatics files and to develop ***web applications*** using  remote data.
 
-***mod_bio** is a set of Apache modules ( http://httpd.apache.org/modules/ ) for Bioinformatics based on the <a href="https://github.com/samtools/htslib">htslib C</a> library.
-The files are:
+
+The files currently managed by mod_bio are:
+
 * ***BAM*** files ( http://www.ncbi.nlm.nih.gov/pubmed/19505943 )
 * Genomic files indexed with ***Tabix*** (http://samtools.sourceforge.net/tabix.shtml)
 * Fastq file
 * Fasta files  indexed with ***samtools faidx*** 
 
-All modules export data as 
+Using the parameters `format=` the modules can export data as 
 
 * plain text
 * XML
 * JSON and JSON-P  ( http://en.wikipedia.org/wiki/JSONP)
 * HTML
 
-All modules (but mod_fastq) can be queried using a genomic-position.
+By default, only a few records are printed. settings the parameter `limit=-1` returns all the records.
+
+
+All modules (but mod_fastq) can be queried using a genomic-position using the parameters `region=(chrom:start-end)`
+
+
+
+## What does it look like ?
+
+When ***mod_bio*** is **not** installed, apache displays the following kind of screen
+
+![without](doc/img/no_htaccess.jpg?raw=true)
+
+when ***mod_bio*** is ***enabled***, some extra-hyperlinks are added:
+
+
+![without](doc/img/with_htaccess.jpg?raw=true)
+
+### An example: The Genome Browser
 
 As an example, a javascript-based genome-browser using json-p is provided.
+
+![gb](doc/img/jsonp01.jpg?raw=true)
 
 
 
@@ -41,7 +63,9 @@ GAAGTCGTAACCGACAGTCAAGAAGAAATTAAAATTGCTGATGAAGTGAA
 
 http://localhost/path1/path2/rf.fa?format=html&region=RF02%3A1-200
 
-faidx_html_01.jpg
+
+![HTML](doc/img/bam_html_01.jpg?raw=true)
+
 
 ### Example: format=xml
 
@@ -90,6 +114,12 @@ ACAATACAGCAGTAACTGAACATATGTTTCAATATTTACAGACGACGTGAGAGAAACATATGCGCGAATG
 +
 2222222222222222222222222222222222222222222222222222222222222222222222
 ```
+
+### Example: format=html
+
+http://localhost/path1/path2/out.read1.fq.gz?format=html&limit=2
+
+![HTML](doc/img/fastq_html_01.jpg?raw=true)
 
 ### Example: format=xml
 
@@ -171,6 +201,13 @@ http://localhost/path1/path2/rf.bam?format=plain&limit=5&region=RF02:200-300
 228	99	RF02	186	60	70M	=	683	567	TTGCTGATGAAGTGAATAAATCGACGAAGGAAGAATCTAAACAATTGCTTGAAGTTTTGAAAACAAAACA	2222222222222222222222222222222222222222222222222222222222222222222222	NM:i:3	AS:i:58	XS:i:0
 315	99	RF02	194	60	70M	=	532	409	GAAGTGAAGAAATCGACGAAGGAAGAATCTAAACAATTTCTTGAAGTTTTTAAAACAAAACAAGCGCACC	2222222222222222222222222222222222222222222222222222222222222222222222	NM:i:5	AS:i:45	XS:i:0
 ```
+
+
+### Example: format=html
+
+http://localhost/path1/path2/rf.bam?format=html&limit=5&region=RF02:200-300
+
+![HTML](doc/img/bam_html_01.jpg?raw=true)
 
 
 ### Example: format=xml
@@ -299,6 +336,28 @@ myfun({"header":"@HD\tVN:1.3\tSO:coordinate\n@SQ\tSN:RF01\tLN:3302\n@SQ\tSN:RF02
 ## mod_tabix
 This apache module handle the bam files indexed with ***tabix*** .
 
+### Example: format=text
+
+http://localhost/~lindenb/modules/rf.vcf.gz?format=plain&limit=2&region=RF02:200-300&callback=myfun
+
+
+```
+##fileformat=VCFv4.1
+##samtoolsVersion=0.1.19-44428cd
+##reference=file://rf.fa
+(...)
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="List of Phred-scaled genotype likelihoods">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	rf.bam
+RF02	214	.	A	G	10.4	.	DP=3;VDB=6.570053e-02;AF1=1;AC1=2;DP4=0,0,3,0;MQ=60;FQ=-36	GT:PL:DP:SP:GQ	1/1:42,9,0:3:0:13
+RF02	254	.	G	C	24.3	.	DP=5;VDB=8.892797e-02;AF1=1;AC1=2;DP4=0,0,5,0;MQ=60;FQ=-42	GT:PL:DP:SP:GQ	1/1:57,15,0:5:0:27
+```
+
+
+### Example: format=html
+
+http://localhost/path1/path2/rf.vcf?format=html&limit=2&region=RF02:200-300
+
+![HTML](doc/img/vcf_html_01.jpg?raw=true)
 
 ### Example: format=xml
 
@@ -384,6 +443,7 @@ http://localhost/path1/path2/rf.vcf.gz?format=json&limit=2&region=RF02:200-300
         "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\trf.bam"
     ]
 }
+```
 
 ### Example: format=json with callback (JSON-P)
 
@@ -407,6 +467,13 @@ myfun({"header":["##fileformat=VCFv4.1",
 
 
 ## Installation
+
+
+
+
+![with](with_htaccess.jpg?raw=true)
+
+![without](no_htaccess.jpg?raw=true)
 
 
 Clone the project
