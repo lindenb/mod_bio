@@ -136,7 +136,7 @@ static int jsonShow( struct fastq_callback_t* handler,const kseq_t *seq)
 		ap_rputs(",\"comment\":",handler->r);
 		ap_jsonQuote(seq->comment.s,handler->r);
 		}
-	ap_rprintf(handler->r,",\"len\":%d,\"seq\":", seq->seq.l);
+	ap_rprintf(handler->r,",\"len\":%d,\"seq\":", (int)(seq->seq.l));
 	ap_jsonQuote(seq->seq.s,handler->r);
 	ap_rputs(",\"qual\":",handler->r);
 	ap_jsonQuote(seq->qual.s,handler->r);
