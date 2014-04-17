@@ -102,12 +102,16 @@ static int xmlShow( struct fastq_callback_t* handler,const kseq_t *seq)
 /** json handlers ***************************************************/
 static void jsonStart( struct fastq_callback_t* handler)
 	{
-	ap_set_content_type(handler->r, MIME_TYPE_JSON);
 	if(handler->jsonp_callback!=NULL)
-		{
-		ap_rputs(handler->jsonp_callback,handler->r);
-		ap_rputc('(',handler->r);
-		}
+			{
+			ap_set_content_type(handler->r, MIME_TYPE_JAVASCRIPT);
+			ap_rputs(handler->jsonp_callback,handler->r);
+			ap_rputc('(',handler->r);
+			}
+	else
+			{
+			ap_set_content_type(handler->r, MIME_TYPE_JSON);
+			}
 	ap_rputs("[\n",handler->r);
 	}
 

@@ -74,6 +74,7 @@ int ap_jsonNQuote(const char* s,size_t n,request_rec *r);
 #define MIME_TYPE_XML "text/xml"
 #define MIME_TYPE_TEXT "text/plain"
 #define MIME_TYPE_HTML "text/html"
+#define MIME_TYPE_JAVASCRIPT "application/javascript"
 
 /* HTML fragments */
 extern const char* html_address;

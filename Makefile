@@ -89,7 +89,6 @@ _priv_example:
 	examples/jsonp.js \
 	examples/samtools.js \
 	examples/footer.html \
-	examples/hershey.html \
-	examples/jsonp.html \
+	examples/00EXAMPLE.html \
 	~/public_html/modules/
 

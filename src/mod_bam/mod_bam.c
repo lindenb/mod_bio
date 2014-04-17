@@ -303,11 +303,15 @@ static int xmlShow(
 /** json handlers ***************************************************/
 static void jsonStart( struct bam_callback_t* handler)
 	{
-	ap_set_content_type(handler->r, MIME_TYPE_JSON);
 	if(handler->jsonp_callback!=NULL)
 			{
+			ap_set_content_type(handler->r, MIME_TYPE_JAVASCRIPT);
 			ap_rputs(handler->jsonp_callback,handler->r);
 			ap_rputc('(',handler->r);
+			}
+	else
+			{
+			ap_set_content_type(handler->r, MIME_TYPE_JSON);
 			}
 	ap_rputs("{\"header\":",handler->r);
 	ap_jsonQuote(handler->header->text,handler->r);
