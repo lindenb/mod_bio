@@ -90,5 +90,5 @@ _priv_example:
 	examples/samtools.js \
 	examples/footer.html \
 	examples/00EXAMPLE.html \
-	~/public_html/modules/
+	~/public_html/mod_bio/
 
