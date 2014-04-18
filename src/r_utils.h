@@ -60,6 +60,7 @@ int ap_xmlPutc(char c,request_rec *r);
 /* json */
 int ap_jsonQuote(const char* s,request_rec *r);
 int ap_jsonNQuote(const char* s,size_t n,request_rec *r);
+int ap_jsonEscapeC(char c,request_rec *r);
 
 /* debug */
 #define TRACEINFO(r,...) \
@@ -78,12 +79,14 @@ int ap_jsonNQuote(const char* s,size_t n,request_rec *r);
 
 /* HTML fragments */
 extern const char* html_address;
-int printDefaulthtmlHead(request_rec *r);
+extern int printDefaulthtmlHead(request_rec *r);
 
 /* file exist ? */
 extern int fileExists(const char* filename);
 /* file with extension exists */
 extern int fileExtExists(const char* filename,const char* suffix);
+/* file without extention exists */
+extern int baseNameExists(const char* filename);
 
 /* parse region 'chrom:start-end' */
 typedef struct chrom_start_end_t

@@ -20,6 +20,7 @@ struct fastq_callback_t
 	int64_t count;
 	int64_t limit;
 	const char* jsonp_callback;
+	HttpParamPtr httParams;
 	void (*startdocument)( struct fastq_callback_t*);
 	void (*enddocument)( struct fastq_callback_t*);
 	void (*error)( struct fastq_callback_t*,const char* msg);
@@ -235,13 +236,22 @@ static void register_hooks(apr_pool_t *pool)
     	ap_hook_handler(fastq_handler, NULL, NULL, APR_HOOK_LAST);
 	}
 
-
+/**
+ *
+ * main handler for FASTQ
+ *
+ */ 
 static int fastq_handler(request_rec *r)
     {
+    struct fastq_callback_t handler;
     gzFile fp=NULL;  
     kseq_t *seq=NULL;  
-    HttpParamPtr httParams=NULL;
     int http_status=OK;
+    
+  	memset((void*)&handler,0,sizeof(struct fastq_callback_t));
+	handler.r=r;
+	handler.limit=DEFAULT_LIMIT_RECORDS;
+    
     if (!r->handler || strcmp(r->handler, "fastq-handler")) return (DECLINED);
     if (strcmp(r->method, "GET")!=0) return DECLINED;
     if(r->canonical_filename==NULL)  return DECLINED;
@@ -252,20 +262,16 @@ static int fastq_handler(request_rec *r)
         str_ends_with(r->canonical_filename,".fq.gz")
        	))  return DECLINED;
    
-    httParams = HttpParamParseGET(r); 
-    if(httParams==NULL) return DECLINED;
+    handler.httParams = HttpParamParseGET(r); 
+    if(handler.httParams==NULL) return DECLINED;
    
    
     
     /* only one loop, we use this to cleanup the code, instead of using a goto statement */
     do	{
 	int l;
-    	struct fastq_callback_t handler;
-    	const char* format=HttpParamGet(httParams,"format");
-    	const char* limit=HttpParamGet(httParams,"limit");
-    	memset((void*)&handler,0,sizeof(struct fastq_callback_t));
-    	handler.r=r;
-    	handler.limit=DEFAULT_LIMIT_RECORDS;
+    	const char* format=HttpParamGet(handler.httParams,"format");
+    	const char* limit=HttpParamGet(handler.httParams,"limit");
     	
     	
     	if(limit!=NULL)
@@ -287,7 +293,7 @@ static int fastq_handler(request_rec *r)
     	 	}
     	 else if(strcmp(format,"json")==0 || strcmp(format,"jsonp")==0)
     	 	{
-    	 	handler.jsonp_callback=HttpParamGet(httParams,"callback");
+    	 	handler.jsonp_callback=HttpParamGet(handler.httParams,"callback");
     	 	handler.startdocument= jsonStart;
     	 	handler.enddocument= jsonEnd;
     	 	handler.error= jsonError;
@@ -333,7 +339,7 @@ static int fastq_handler(request_rec *r)
     
     
     //cleanup
-    HttpParamFree(httParams);
+    HttpParamFree(handler.httParams);
     if(seq!=NULL) kseq_destroy(seq); //destroy seq  
     if(fp!=NULL) gzclose(fp); // close the file handler  
     return http_status;

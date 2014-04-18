@@ -73,7 +73,7 @@ static int plainPrintBody( struct tabix_callback_t* handler,const kstring_t *lin
 
 static void xmlStartDocument( struct tabix_callback_t* handler)
 	{
-	ap_set_content_type(handler->r, "text/xml");
+	ap_set_content_type(handler->r, MIME_TYPE_XML);
 	ap_rputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 		"<tabix-file git-version=\"" MOD_BIO_VERSION "\">\n",handler->r);
 	}

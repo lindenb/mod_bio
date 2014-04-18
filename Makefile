@@ -6,18 +6,41 @@ LIBDIR?=/usr/local/lib
 APXS?=apxs2
 LIBTOOL?=/usr/share/apr-1.0/build/libtool
 CFLAGS= -Wall -g -Werror
-.PHONY:all build deploy htslib clean _priv_example
+.PHONY:all build deploy htslib clean _priv_example _priv_deploy
 
 export LD_RUN_PATH=${LIBDIR}
 
 all: deploy 
 
 deploy: build
-	rm -rf /var/www/mod_bio
-	cp -r resources  /var/www/mod_bio
-	service apache2 restart
+	@echo "##"
+	@echo "## IMPORTANT: FROM THIS POINT YOU SHOULD :"
+	@echo "##"
+	@echo "## (1) COPY the directory resources in"
+	@echo "## t he html root of apache. For me, it is /var/www/"
+	@echo "##"
+	@echo "##   $$ rm -rf /var/www/mod_bio && cp -r resources  /var/www/mod_bio "
+	@echo "##"
+	@echo "## (2) INVOKE LIBTOOL "
+	@echo "##"
+	@echo "##   $$ $(LIBTOOL) --finish ${LIBDIR}"
+	@echo "##"
+	@echo "## (3) RESTART APACHE "
+	@echo "##"
+	@echo "##   $$ service apache2 restart"
+	@echo "##"
 
-build:	$(foreach M,fastq tabix bam faidx, src/mod_${M}/mod_${M}.slo )
+
+_priv_deploy: deploy
+	rm -rf /var/www/mod_bio && \
+	cp -r resources  /var/www/mod_bio && \
+	$(LIBTOOL) --finish ${LIBDIR} && \
+	service apache2 restart
+	
+
+## mod_listngs is disabled by default
+
+build:	$(foreach M, fastq tabix bam faidx, src/mod_${M}/mod_${M}.slo )
 
 
 src/mod_bam/mod_bam.slo : \
@@ -27,9 +50,7 @@ src/mod_bam/mod_bam.slo : \
 		src/r_utils.c  \
 		src/r_utils.h
 	${APXS} -I$(HTSDIR) -Isrc -L$(LIBDIR) \
-		-i -a -c -Wc,'${CFLAGS}'  $(filter %.c,$^) -lhts -lm -lz  && \
-	$(LIBTOOL) --finish $(LIBDIR)
-
+		-i -a -c -Wc,'${CFLAGS}'  $(filter %.c,$^) -lhts -lm -lz  
 
 src/mod_faidx/mod_faidx.slo : \
 		$(LIBDIR)/libhts.so \
@@ -38,8 +59,7 @@ src/mod_faidx/mod_faidx.slo : \
 		src/r_utils.c  \
 		src/r_utils.h
 	${APXS} -I$(HTSDIR) -Isrc -L$(LIBDIR) \
-		-i -a -c -Wc,'${CFLAGS}'  $(filter %.c,$^) -lhts -lm -lz  && \
-	$(LIBTOOL) --finish $(LIBDIR)
+		-i -a -c -Wc,'${CFLAGS}'  $(filter %.c,$^) -lhts -lm -lz 
 
 
 src/mod_fastq/mod_fastq.slo : \
@@ -49,8 +69,7 @@ src/mod_fastq/mod_fastq.slo : \
 		src/r_utils.c  \
 		src/r_utils.h
 	${APXS} -I$(HTSDIR) -Isrc -L$(LIBDIR) \
-		-i -a -c -Wc,'${CFLAGS}'  $(filter %.c,$^) -lhts  -lm -lz  && \
-	$(LIBTOOL) --finish $(LIBDIR)
+		-i -a -c -Wc,'${CFLAGS}'  $(filter %.c,$^) -lhts  -lm -lz 
 
 src/mod_tabix/mod_tabix.slo : \
 		$(LIBDIR)/libhts.so \
@@ -59,14 +78,23 @@ src/mod_tabix/mod_tabix.slo : \
 		src/r_utils.c  \
 		src/r_utils.h
 	${APXS} -I$(HTSDIR)  -Isrc -L$(LIBDIR) \
-		-i -a -c -Wc,'${CFLAGS}'  $(filter %.c,$^) -lhts -lm -lz  && \
-	$(LIBTOOL) --finish $(LIBDIR)
+		-i -a -c -Wc,'${CFLAGS}'  $(filter %.c,$^) -lhts -lm -lz
+
+src/mod_listngs/mod_listngs.slo : \
+		$(LIBDIR)/libhts.so \
+		src/mod_bio_version.h \
+		src/mod_listngs/mod_listngs.c \
+		src/r_utils.c  \
+		src/r_utils.h
+	${APXS} -I$(HTSDIR)  -Isrc -L$(LIBDIR) \
+		-i -a -c -Wc,'${CFLAGS}'  $(filter %.c,$^) -lhts -lm -lz 
 
 
+$(LIBDIR)/libhts.so:$(HTSDIR)/libhts.so
+	cp $< $@
 
-$(LIBDIR)/libhts.so:
-	$(MAKE) -C $(HTSDIR) && \
-	cp $(HTSDIR)/libhts.so $@
+$(HTSDIR)/libhts.so:
+	$(MAKE) -C $(HTSDIR) lib-shared 
 
 
 src/mod_bio_version.h:

@@ -173,18 +173,23 @@ int ap_jsonNQuote(const char* s,size_t n,request_rec *r)
 	ap_rputc('\"',r);
 	for(i=0;i< n;++i)
 		{
-		char p = s[i];
-		switch(p)
-			{
-			case '\\': ap_rputs("\\\\",r); break;
-			case '\t': ap_rputs("\\t",r); break;
-			case '\n': ap_rputs("\\n",r); break;
-			case '\"': ap_rputs("\\\"",r); break;
-			default: ap_rputc(p,r); break;
-			}
+		ap_jsonEscapeC(s[i],r);
 		}
 	ap_rputc('\"',r);
 	return (int)n;
+	}
+
+int ap_jsonEscapeC(char c,request_rec *r)
+	{
+	switch(c)
+			{
+			case '\\': return ap_rputs("\\\\",r); break;
+			case '\t': return ap_rputs("\\t",r); break;
+			case '\n': return ap_rputs("\\n",r); break;
+			case '\"': return ap_rputs("\\\"",r); break;
+			default: return ap_rputc(c,r); break;
+			}
+	return -1;//should never happen
 	}
 
 int fileExists(const char* filename)
@@ -212,6 +217,21 @@ int fileExtExists(const char* filename,const char* suffix)
     free(p);
     return ret;
     }
+
+int baseNameExists(const char* filename)
+	{
+	int ret=0;
+	char* p=NULL;
+	char* dot=NULL;
+	if(filename==NULL) return FALSE;
+	dot=strrchr(filename,'.');
+	if(dot==NULL) return FALSE;
+	p=strndup(filename,dot-filename);
+	if(p==NULL) return FALSE;
+	ret=fileExists(p);
+	free(p);
+	return ret;
+	}
 
 
 int parseRegion(const char* region,ChromStartEnd* pos)

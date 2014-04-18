@@ -9,6 +9,7 @@ The MIT License.
 **/
 function GenomeBrowser()
 	{
+	this.hostPrefix='';
 	this.chromLength=100;
 	this.width=1000;
 	this.featureHeight=20;
@@ -468,7 +469,7 @@ function receiveJsonpReference(JSONdata)
   gBrowse.genomicSequence.str=JSONdata.sequence;
   gBrowse.genomicSequence.start0=JSONdata.start;
     
-  var url= gBrowse.bamFile+'?format=json&callback=receiveJsonpBam&region='+
+  var url= gBrowse.hostPrefix+gBrowse.bamFile+'?format=json&callback=receiveJsonpBam&region='+
   	encodeURI(gBrowse.interval.chrom+":"+(gBrowse.interval.start)+"-"+(gBrowse.interval.end));
   gBrowse.insertHtmlScript("scriptbam",url);
   }
@@ -476,7 +477,7 @@ function receiveJsonpReference(JSONdata)
 GenomeBrowser.prototype.refresh=function()
   {
   if(this.interval.chrom==null) return;
-  var url= this.refFile+'?format=json&callback=receiveJsonpReference&region='+
+  var url= this.hostPrefix+this.refFile+'?format=json&callback=receiveJsonpReference&region='+
   	encodeURI(this.interval.chrom+":"+(this.interval.start-1)+"-"+(this.interval.end));
   this.insertHtmlScript("scriptchrom",url);
   }
