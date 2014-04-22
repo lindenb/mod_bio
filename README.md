@@ -1,6 +1,9 @@
 ***mod_bio*** is a set of ***Apache modules*** ( http://httpd.apache.org/modules/ ) for Bioinformatics based on the <a href="https://github.com/samtools/htslib">htslib C</a> library. It provides a quick way to explore bioinformatics files and to develop ***web applications*** using  remote data.
 
 
+* Installing mod_bio: see below
+* Installing the example: see below
+
 The files currently managed by mod_bio are:
 
 * ***BAM*** files ( http://www.ncbi.nlm.nih.gov/pubmed/19505943 )
@@ -19,7 +22,6 @@ By default, only a few records are printed. settings the parameter `limit=-1` re
 
 
 All modules (but mod_fastq) can be queried using a genomic-position using the parameters `region=(chrom:start-end)`
-
 
 
 ## What does it look like ?
@@ -622,6 +624,7 @@ and contains the following files:
 <tr><th>rf.vcf.gz.tbi</th><td>Tabix index for the VCF file</td></tr>
 <tr><th>samtools.js</th><td>javascript file. Library for the GenomeBrowser. SAM routines</td></tr>
 </table>
+
 ### .htaccess
 The `.htaccess` file in the example currently contains the following
 
@@ -675,45 +678,5 @@ IndexIgnore footer.html .htaccess
 
 </IfModule> 
 ```
-
-
-
-
-
-
-<IfModule mod_autoindex.c>
-IndexOptions +HTMLTable
-IndexOptions +SuppressRules
-IndexOptions +SuppressHTMLPreamble
-
-
-# SPECIFY HEADER FILE
-ReadmeName footer.html
-
-# IGNORE THESE FILES
-IndexIgnore header.html footer.html .htaccess
-
-</IfModule> 
-
-
-AddIcon /icons/compressed.gif .bam
-
-
-
-#
-# Adding Descriptions to Folders and Files
-#
-AddDescription "Binary Sequence Alignment Map <a href='http://samtools.github.io/hts-specs/SAMv1.pdf' target='_blank'>(BAM)</a>" .bam
-AddDescription "BAM Index</a>" .bai
-AddDescription "Sequence Alignment Map <a href='http://samtools.github.io/hts-specs/SAMv1.pdf' target='_blank'>(SAM)</a>" .sam
-AddDescription "<a href='http://en.wikipedia.org/wiki/FASTQ_format' target='_blank'>FastQ</a>" .fastq
-AddDescription "<a href='http://en.wikipedia.org/wiki/FASTQ_format' target='_blank'>FastQ</a>" .fq
-AddDescription "<a href='http://genome.ucsc.edu/FAQ/FAQformat.html#format1' target='_blank'>BED</a> file" .bed
-AddDescription "<a href='http://samtools.github.io/hts-specs/' target='_blank'>VCF (Variant Call Format)</a> file" .vcf
-AddDescription "Tabix index file" .tbi
-AddDescription "samtools faidx index file" .fai
-AddDescription "Fasta Sequence File" .fa
-AddDescription "Fasta Sequence File" .fasta
-
 
 
