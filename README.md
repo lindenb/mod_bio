@@ -1,6 +1,7 @@
 ***mod_bio*** is a set of ***Apache modules*** ( http://httpd.apache.org/modules/ ) for Bioinformatics based on the <a href="https://github.com/samtools/htslib">htslib C</a> library. It provides a quick way to explore bioinformatics files and to develop ***web applications*** using  remote data.
 
 
+* See Live example  currently at: http://cardioserve.nantes.inserm.fr/~lindenb/mod_bio/
 * Installing mod_bio: see below
 * Installing the example: see below
 
@@ -38,6 +39,8 @@ when ***mod_bio*** is ***enabled***, some extra-hyperlinks are added:
 ### An example: The Genome Browser
 
 As an example, a javascript-based genome-browser using json-p is provided.
+This example is currently running at: http://cardioserve.nantes.inserm.fr/~lindenb/mod_bio/00EXAMPLE.html
+
 
 ![gb](doc/img/jsonp01.jpg?raw=true)
 
