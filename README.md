@@ -556,130 +556,23 @@ compile with ***GNU-make*** :
 /etc/apache2/mods-enabled
 ```
 
+to compile and install mod_bio:
 
 ```bash
+$ sudo make
+```
+
+that should produce something like the following output:
+
+```bash
+$ sudo make
 
   apxs2 -Ihtslib -Isrc -L/usr/local/lib \
 		-i -a -c -Wc,'-Wall -g -Werror'  src/mod_fastq/mod_fastq.c src/r_utils.c -lhts  -lm -lz 
-/usr/share/apr-1.0/build/libtool --silent --mode=compile --tag=disable-static i686-linux-gnu-gcc -prefer-pic -DLINUX=2 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D_LARGEFILE64_SOURCE -D_REENTRANT -I/usr/include/apr-1.0 -I/usr/include/openssl -I/usr/include/xmltok -pthread     -I/usr/include/apache2  -I/usr/include/apr-1.0   -I/usr/include/apr-1.0  -Wall -g -Werror -Ihtslib -Isrc  -c -o src/mod_fastq/mod_fastq.lo src/mod_fastq/mod_fastq.c && touch src/mod_fastq/mod_fastq.slo
-/usr/share/apr-1.0/build/libtool --silent --mode=compile --tag=disable-static i686-linux-gnu-gcc -prefer-pic -DLINUX=2 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D_LARGEFILE64_SOURCE -D_REENTRANT -I/usr/include/apr-1.0 -I/usr/include/openssl -I/usr/include/xmltok -pthread     -I/usr/include/apache2  -I/usr/include/apr-1.0   -I/usr/include/apr-1.0  -Wall -g -Werror -Ihtslib -Isrc  -c -o src/r_utils.lo src/r_utils.c && touch src/r_utils.slo
-/usr/share/apr-1.0/build/libtool --silent --mode=link --tag=disable-static i686-linux-gnu-gcc -o src/mod_fastq/mod_fastq.la  -L/usr/local/lib -rpath /usr/lib/apache2/modules -module -avoid-version    src/r_utils.lo src/mod_fastq/mod_fastq.lo -lhts -lm -lz
-/usr/share/apache2/build/instdso.sh SH_LIBTOOL='/usr/share/apr-1.0/build/libtool' src/mod_fastq/mod_fastq.la /usr/lib/apache2/modules
-/usr/share/apr-1.0/build/libtool --mode=install cp src/mod_fastq/mod_fastq.la /usr/lib/apache2/modules/
-libtool: install: cp src/mod_fastq/.libs/mod_fastq.so /usr/lib/apache2/modules/mod_fastq.so
-libtool: install: cp src/mod_fastq/.libs/mod_fastq.lai /usr/lib/apache2/modules/mod_fastq.la
-libtool: finish: PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/sbin" ldconfig -n /usr/lib/apache2/modules
-----------------------------------------------------------------------
+(...)
 Libraries have been installed in:
    /usr/lib/apache2/modules
-
-If you ever happen to want to link against installed libraries
-in a given directory, LIBDIR, you must either use libtool, and
-specify the full pathname of the library, or use the `-LLIBDIR'
-flag during linking and do at least one of the following:
-   - add LIBDIR to the `LD_LIBRARY_PATH' environment variable
-     during execution
-   - add LIBDIR to the `LD_RUN_PATH' environment variable
-     during linking
-   - use the `-Wl,-rpath -Wl,LIBDIR' linker flag
-   - have your system administrator add LIBDIR to `/etc/ld.so.conf'
-
-See any operating system documentation about shared libraries for
-more information, such as the ld(1) and ld.so(8) manual pages.
-----------------------------------------------------------------------
-chmod 644 /usr/lib/apache2/modules/mod_fastq.so
-[preparing module `fastq' in /etc/apache2/mods-available/fastq.load]
-Module fastq already enabled
-apxs2 -Ihtslib  -Isrc -L/usr/local/lib \
-		-i -a -c -Wc,'-Wall -g -Werror'  src/mod_tabix/mod_tabix.c src/r_utils.c -lhts -lm -lz
-/usr/share/apr-1.0/build/libtool --silent --mode=compile --tag=disable-static i686-linux-gnu-gcc -prefer-pic -DLINUX=2 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D_LARGEFILE64_SOURCE -D_REENTRANT -I/usr/include/apr-1.0 -I/usr/include/openssl -I/usr/include/xmltok -pthread     -I/usr/include/apache2  -I/usr/include/apr-1.0   -I/usr/include/apr-1.0  -Wall -g -Werror -Ihtslib -Isrc  -c -o src/mod_tabix/mod_tabix.lo src/mod_tabix/mod_tabix.c && touch src/mod_tabix/mod_tabix.slo
-/usr/share/apr-1.0/build/libtool --silent --mode=compile --tag=disable-static i686-linux-gnu-gcc -prefer-pic -DLINUX=2 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D_LARGEFILE64_SOURCE -D_REENTRANT -I/usr/include/apr-1.0 -I/usr/include/openssl -I/usr/include/xmltok -pthread     -I/usr/include/apache2  -I/usr/include/apr-1.0   -I/usr/include/apr-1.0  -Wall -g -Werror -Ihtslib -Isrc  -c -o src/r_utils.lo src/r_utils.c && touch src/r_utils.slo
-/usr/share/apr-1.0/build/libtool --silent --mode=link --tag=disable-static i686-linux-gnu-gcc -o src/mod_tabix/mod_tabix.la  -L/usr/local/lib -rpath /usr/lib/apache2/modules -module -avoid-version    src/r_utils.lo src/mod_tabix/mod_tabix.lo -lhts -lm -lz
-/usr/share/apache2/build/instdso.sh SH_LIBTOOL='/usr/share/apr-1.0/build/libtool' src/mod_tabix/mod_tabix.la /usr/lib/apache2/modules
-/usr/share/apr-1.0/build/libtool --mode=install cp src/mod_tabix/mod_tabix.la /usr/lib/apache2/modules/
-libtool: install: cp src/mod_tabix/.libs/mod_tabix.so /usr/lib/apache2/modules/mod_tabix.so
-libtool: install: cp src/mod_tabix/.libs/mod_tabix.lai /usr/lib/apache2/modules/mod_tabix.la
-libtool: finish: PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/sbin" ldconfig -n /usr/lib/apache2/modules
-----------------------------------------------------------------------
-Libraries have been installed in:
-   /usr/lib/apache2/modules
-
-If you ever happen to want to link against installed libraries
-in a given directory, LIBDIR, you must either use libtool, and
-specify the full pathname of the library, or use the `-LLIBDIR'
-flag during linking and do at least one of the following:
-   - add LIBDIR to the `LD_LIBRARY_PATH' environment variable
-     during execution
-   - add LIBDIR to the `LD_RUN_PATH' environment variable
-     during linking
-   - use the `-Wl,-rpath -Wl,LIBDIR' linker flag
-   - have your system administrator add LIBDIR to `/etc/ld.so.conf'
-
-See any operating system documentation about shared libraries for
-more information, such as the ld(1) and ld.so(8) manual pages.
-----------------------------------------------------------------------
-chmod 644 /usr/lib/apache2/modules/mod_tabix.so
-[preparing module `tabix' in /etc/apache2/mods-available/tabix.load]
-Module tabix already enabled
-apxs2 -Ihtslib -Isrc -L/usr/local/lib \
-		-i -a -c -Wc,'-Wall -g -Werror'  src/mod_bam/mod_bam.c src/r_utils.c -lhts -lm -lz  
-/usr/share/apr-1.0/build/libtool --silent --mode=compile --tag=disable-static i686-linux-gnu-gcc -prefer-pic -DLINUX=2 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D_LARGEFILE64_SOURCE -D_REENTRANT -I/usr/include/apr-1.0 -I/usr/include/openssl -I/usr/include/xmltok -pthread     -I/usr/include/apache2  -I/usr/include/apr-1.0   -I/usr/include/apr-1.0  -Wall -g -Werror -Ihtslib -Isrc  -c -o src/mod_bam/mod_bam.lo src/mod_bam/mod_bam.c && touch src/mod_bam/mod_bam.slo
-/usr/share/apr-1.0/build/libtool --silent --mode=compile --tag=disable-static i686-linux-gnu-gcc -prefer-pic -DLINUX=2 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D_LARGEFILE64_SOURCE -D_REENTRANT -I/usr/include/apr-1.0 -I/usr/include/openssl -I/usr/include/xmltok -pthread     -I/usr/include/apache2  -I/usr/include/apr-1.0   -I/usr/include/apr-1.0  -Wall -g -Werror -Ihtslib -Isrc  -c -o src/r_utils.lo src/r_utils.c && touch src/r_utils.slo
-/usr/share/apr-1.0/build/libtool --silent --mode=link --tag=disable-static i686-linux-gnu-gcc -o src/mod_bam/mod_bam.la  -L/usr/local/lib -rpath /usr/lib/apache2/modules -module -avoid-version    src/r_utils.lo src/mod_bam/mod_bam.lo -lhts -lm -lz
-/usr/share/apache2/build/instdso.sh SH_LIBTOOL='/usr/share/apr-1.0/build/libtool' src/mod_bam/mod_bam.la /usr/lib/apache2/modules
-/usr/share/apr-1.0/build/libtool --mode=install cp src/mod_bam/mod_bam.la /usr/lib/apache2/modules/
-libtool: install: cp src/mod_bam/.libs/mod_bam.so /usr/lib/apache2/modules/mod_bam.so
-libtool: install: cp src/mod_bam/.libs/mod_bam.lai /usr/lib/apache2/modules/mod_bam.la
-libtool: finish: PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/sbin" ldconfig -n /usr/lib/apache2/modules
-----------------------------------------------------------------------
-Libraries have been installed in:
-   /usr/lib/apache2/modules
-
-If you ever happen to want to link against installed libraries
-in a given directory, LIBDIR, you must either use libtool, and
-specify the full pathname of the library, or use the `-LLIBDIR'
-flag during linking and do at least one of the following:
-   - add LIBDIR to the `LD_LIBRARY_PATH' environment variable
-     during execution
-   - add LIBDIR to the `LD_RUN_PATH' environment variable
-     during linking
-   - use the `-Wl,-rpath -Wl,LIBDIR' linker flag
-   - have your system administrator add LIBDIR to `/etc/ld.so.conf'
-
-See any operating system documentation about shared libraries for
-more information, such as the ld(1) and ld.so(8) manual pages.
-----------------------------------------------------------------------
-chmod 644 /usr/lib/apache2/modules/mod_bam.so
-[preparing module `bam' in /etc/apache2/mods-available/bam.load]
-Module bam already enabled
-apxs2 -Ihtslib -Isrc -L/usr/local/lib \
-		-i -a -c -Wc,'-Wall -g -Werror'  src/mod_faidx/mod_faidx.c src/r_utils.c -lhts -lm -lz 
-/usr/share/apr-1.0/build/libtool --silent --mode=compile --tag=disable-static i686-linux-gnu-gcc -prefer-pic -DLINUX=2 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D_LARGEFILE64_SOURCE -D_REENTRANT -I/usr/include/apr-1.0 -I/usr/include/openssl -I/usr/include/xmltok -pthread     -I/usr/include/apache2  -I/usr/include/apr-1.0   -I/usr/include/apr-1.0  -Wall -g -Werror -Ihtslib -Isrc  -c -o src/mod_faidx/mod_faidx.lo src/mod_faidx/mod_faidx.c && touch src/mod_faidx/mod_faidx.slo
-/usr/share/apr-1.0/build/libtool --silent --mode=compile --tag=disable-static i686-linux-gnu-gcc -prefer-pic -DLINUX=2 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D_LARGEFILE64_SOURCE -D_REENTRANT -I/usr/include/apr-1.0 -I/usr/include/openssl -I/usr/include/xmltok -pthread     -I/usr/include/apache2  -I/usr/include/apr-1.0   -I/usr/include/apr-1.0  -Wall -g -Werror -Ihtslib -Isrc  -c -o src/r_utils.lo src/r_utils.c && touch src/r_utils.slo
-/usr/share/apr-1.0/build/libtool --silent --mode=link --tag=disable-static i686-linux-gnu-gcc -o src/mod_faidx/mod_faidx.la  -L/usr/local/lib -rpath /usr/lib/apache2/modules -module -avoid-version    src/r_utils.lo src/mod_faidx/mod_faidx.lo -lhts -lm -lz
-/usr/share/apache2/build/instdso.sh SH_LIBTOOL='/usr/share/apr-1.0/build/libtool' src/mod_faidx/mod_faidx.la /usr/lib/apache2/modules
-/usr/share/apr-1.0/build/libtool --mode=install cp src/mod_faidx/mod_faidx.la /usr/lib/apache2/modules/
-libtool: install: cp src/mod_faidx/.libs/mod_faidx.so /usr/lib/apache2/modules/mod_faidx.so
-libtool: install: cp src/mod_faidx/.libs/mod_faidx.lai /usr/lib/apache2/modules/mod_faidx.la
-libtool: finish: PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/sbin" ldconfig -n /usr/lib/apache2/modules
-----------------------------------------------------------------------
-Libraries have been installed in:
-   /usr/lib/apache2/modules
-
-If you ever happen to want to link against installed libraries
-in a given directory, LIBDIR, you must either use libtool, and
-specify the full pathname of the library, or use the `-LLIBDIR'
-flag during linking and do at least one of the following:
-   - add LIBDIR to the `LD_LIBRARY_PATH' environment variable
-     during execution
-   - add LIBDIR to the `LD_RUN_PATH' environment variable
-     during linking
-   - use the `-Wl,-rpath -Wl,LIBDIR' linker flag
-   - have your system administrator add LIBDIR to `/etc/ld.so.conf'
-
-See any operating system documentation about shared libraries for
-more information, such as the ld(1) and ld.so(8) manual pages.
-----------------------------------------------------------------------
+(...à
 chmod 644 /usr/lib/apache2/modules/mod_faidx.so
 [preparing module `faidx' in /etc/apache2/mods-available/faidx.load]
 Module faidx already enabled
@@ -704,5 +597,123 @@ At the end, follow the final instructions
 ##   $ service apache2 restart
 ##
 ```
+## Installing the example:
+the example is in 
+
+```
+examples/
+```
+
+and contains the following files:
+
+<table>
+<tr><th>00EXAMPLE.html</th><td>A HTML5 GenomeBrowser using JSON-P</td></tr>
+<tr><th>jsonp.js</th><td>javascript file. Library for the GenomeBrowser. Drawing routines</td></tr>
+<tr><th>footer.html</th><td>The new default footer for the HTML directory listing. Appends new anchors to the NGS files</td></tr>
+<tr><th>hershey.js</th><td>javascript file. Library for the GenomeBrowser. Hershey font routines</td></tr>
+<tr><th>.htaccess</th><td>(invisible file) Apache2 htaccess file</td></tr>
+<tr><th>out.read1.fq.gz</th><td>Example fastq file forward</td></tr>
+<tr><th>out.read2.fq.gz</th><td>Example fastq file reverse</td></tr>
+<tr><th>rf.bam</th><td>Example bam file</td></tr>
+<tr><th>rf.bam.bai</th><td>Bam file index</td></tr>
+<tr><th>rf.fa</th><td>Rotavirus RF reference sequence</td></tr>
+<tr><th>rf.fa.fai</th><td>Samtools faidx index for the REFerence sequence</td></tr>
+<tr><th>rf.vcf.gz</th><td>Example VCF file</td></tr>
+<tr><th>rf.vcf.gz.tbi</th><td>Tabix index for the VCF file</td></tr>
+<tr><th>samtools.js</th><td>javascript file. Library for the GenomeBrowser. SAM routines</td></tr>
+</table>
+### .htaccess
+The `.htaccess` file in the example currently contains the following
+
+Add the  mod_bio handlers for the following file extensions:
+```apacheconf
+(...)
+AddHandler fastq-handler .fastq.gz
+AddHandler fastq-handler .fastq
+AddHandler fastq-handler .fq.gz
+AddHandler fastq-handler .fq
+AddHandler bam-handler .bam
+AddHandler tabix-handler .vcf
+AddHandler faidx-handler .fa
+AddHandler faidx-handler .fasta
+(...)
+```
+
+Add descriptions for folders and files:
+
+```apacheconf
+AddDescription "Binary Sequence Alignment Map <a href='http://samtools.github.io/hts-specs/SAMv1.pdf' target='_blank'>(BAM)</a>" .bam
+AddDescription "BAM Index</a>" .bai
+AddDescription "Sequence Alignment Map <a href='http://samtools.github.io/hts-specs/SAMv1.pdf' target='_blank'>(SAM)</a>" .sam
+AddDescription "<a href='http://en.wikipedia.org/wiki/FASTQ_format' target='_blank'>FastQ</a>" .fastq
+AddDescription "<a href='http://genome.ucsc.edu/FAQ/FAQformat.html#format1' target='_blank'>BED</a> file" .bed
+AddDescription "<a href='http://samtools.github.io/hts-specs/' target='_blank'>VCF (Variant Call Format)</a> file" .vcf
+AddDescription "Tabix index file" .tbi
+AddDescription "samtools faidx index file" .fai
+AddDescription "Fasta Sequence File" .fa
+AddDescription "Fasta Sequence File" .fasta
+(...)
+```
+Set the compressed icon for bam
+```apacheconf
+AddIcon /icons/compressed.gif .bam
+```
+
+Setup the standard apache module mod_autoindex. ***Important*** this configuration tells apache2 to use our file `examples/footer.html` instead of the standard footer.
+```apacheconf
+<IfModule mod_autoindex.c>
+IndexOptions +HTMLTable
+IndexOptions +SuppressRules
+IndexOptions +SuppressHTMLPreamble
+
+
+# SPECIFY HEADER FILE
+ReadmeName footer.html
+
+# IGNORE THESE FILES
+IndexIgnore footer.html .htaccess
+
+</IfModule> 
+```
+
+
+
+
+
+
+<IfModule mod_autoindex.c>
+IndexOptions +HTMLTable
+IndexOptions +SuppressRules
+IndexOptions +SuppressHTMLPreamble
+
+
+# SPECIFY HEADER FILE
+ReadmeName footer.html
+
+# IGNORE THESE FILES
+IndexIgnore header.html footer.html .htaccess
+
+</IfModule> 
+
+
+AddIcon /icons/compressed.gif .bam
+
+
+
+#
+# Adding Descriptions to Folders and Files
+#
+AddDescription "Binary Sequence Alignment Map <a href='http://samtools.github.io/hts-specs/SAMv1.pdf' target='_blank'>(BAM)</a>" .bam
+AddDescription "BAM Index</a>" .bai
+AddDescription "Sequence Alignment Map <a href='http://samtools.github.io/hts-specs/SAMv1.pdf' target='_blank'>(SAM)</a>" .sam
+AddDescription "<a href='http://en.wikipedia.org/wiki/FASTQ_format' target='_blank'>FastQ</a>" .fastq
+AddDescription "<a href='http://en.wikipedia.org/wiki/FASTQ_format' target='_blank'>FastQ</a>" .fq
+AddDescription "<a href='http://genome.ucsc.edu/FAQ/FAQformat.html#format1' target='_blank'>BED</a> file" .bed
+AddDescription "<a href='http://samtools.github.io/hts-specs/' target='_blank'>VCF (Variant Call Format)</a> file" .vcf
+AddDescription "Tabix index file" .tbi
+AddDescription "samtools faidx index file" .fai
+AddDescription "Fasta Sequence File" .fa
+AddDescription "Fasta Sequence File" .fasta
+
 
 
