@@ -519,7 +519,7 @@ $ sudo apt-get install apache2-threaded-dev
 ```
 
 
-Clone the project
+Clone the project:
 
 ```bash
 $ git clone "https://github.com/lindenb/mod_bio.git"
@@ -531,7 +531,7 @@ Receiving objects: 100% (189/189), 632.94 KiB | 697 KiB/s, done.
 Resolving deltas: 100% (82/82), done.
 ```
 
-or for a specific branch...
+... or for a specific branch (at the time of writing there is a branch named 'dev')...
 ```bash
 $ git clone --branch dev "https://github.com/lindenb/mod_bio.git"
 ```
