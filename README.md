@@ -1,4 +1,7 @@
-***mod_bio*** is a set of ***Apache modules*** ( http://httpd.apache.org/modules/ ) for Bioinformatics based on the <a href="https://github.com/samtools/htslib">htslib C</a> library. It provides a quick way to explore bioinformatics files and to develop ***web applications*** using  remote data.
+***mod_bio*** ***(manuscript submited)*** is a set of ***Apache modules*** ( http://httpd.apache.org/modules/ ) for Bioinformatics based on the <a href="https://github.com/samtools/htslib">htslib C</a> library. It provides a quick way to explore bioinformatics files and to develop ***web applications*** using  remote data.
+
+
+
 
 
 * See Live example  currently at: http://cardioserve.nantes.inserm.fr/~lindenb/mod_bio/
