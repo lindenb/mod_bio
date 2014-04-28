@@ -273,6 +273,8 @@ static void jsonEndBody( struct tabix_callback_t* handler)
 /** HTML handlers ***************************************************/
 static void htmlStartDocument( struct tabix_callback_t* handler)
 	{
+	const char* region=HttpParamGet(handler->httParams,"region");
+
 	ap_set_content_type(handler->r, MIME_TYPE_HTML);
 	ap_rputs("<!doctype html>\n<html lang=\"en\">",handler->r);
 	ap_rputs("<head>",handler->r);
@@ -286,10 +288,18 @@ static void htmlStartDocument( struct tabix_callback_t* handler)
 		"<option value='xml'>xml</option>"
 		"<option value='text'>text</option>"
 		"</select> "
-		"<label for='limit'>Limit:</label> <input id='limit' name='limit' type='number' value='10'/> <input type='submit'/></form>"
+		"<label for='limit'>Limit:</label> <input id='limit' name='limit' type='number' value='10'/> "
+		"<label for='region'>Region:</label> <input id='region' name='region' placeholder='chrom:start-end' "
 		,handler->r);
-		
-	ap_rputs("<div>",handler->r);
+	
+	if(region!=NULL)
+	    {
+	    ap_rputs(" value=\"",handler->r);
+	    ap_xmlPuts(region,handler->r);
+	    ap_rputs("\"",handler->r);
+	    }
+
+	ap_rputs("/> <input type='submit'/></form><div>",handler->r);
 	}
 
 static void htmlEndDocument( struct tabix_callback_t* handler)
