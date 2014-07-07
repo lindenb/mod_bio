@@ -1,0 +1,23 @@
+{
+    "name": "Fastq", 
+    "type": "record",
+    "fields": [
+        {
+            "name": "len", 
+            "type": "int"
+        }, 
+        {
+            "name": "name", 
+            "type": "string"
+        }, 
+        {
+            "name": "qual", 
+            "type": "string"
+        }, 
+        {
+            "name": "seq", 
+            "type": "string"
+        }
+    ]
+}
+

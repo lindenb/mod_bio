@@ -77,6 +77,10 @@ int ap_jsonEscapeC(char c,request_rec *r);
 #define MIME_TYPE_HTML "text/html"
 #define MIME_TYPE_JAVASCRIPT "application/javascript"
 
+
+/* XMLNS namespaces */
+#define MODBIO_XMLNS "https://github.com/lindenb/mod_bio#"
+
 /* HTML fragments */
 extern const char* html_address;
 extern int printDefaulthtmlHead(request_rec *r);

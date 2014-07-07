@@ -70,23 +70,34 @@ static int plainShow(
 static void xmlStart( struct faidx_callback_t* handler)
 	{
 	ap_set_content_type(handler->r, "text/xml");
-	ap_rputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<faidx  git-version=\"" MOD_BIO_VERSION "\">\n<sequence ",handler->r);
+	ap_rputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<seqXML seqXMLversion=\"0.4\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"  xsi:noNamespaceSchemaLocation=\"http://www.seqxml.org/0.4/seqxml.xsd\" xmlns:modbio=\"" MODBIO_XMLNS "\"  modbio:git-version=\"" MOD_BIO_VERSION "\">\n<entry ",handler->r);
 	if(handler->region.chromosome!=NULL)
 	    {
-	    ap_rputs(" chrom=\"",handler->r);
+	    /* write entry id */
+	    ap_rputs(" id=\"",handler->r);
 	    ap_xmlPuts(handler->region.chromosome,handler->r);
-	    ap_rprintf(handler->r,"\" start=\"%d\" end=\"%d\"",
+	    ap_rprintf(handler->r,":%d-%d",
+		    handler->region.p_beg_i0,
+		    handler->region.p_end_i0
+		);
+	    ap_rputs("\" modbio:chrom=\"",handler->r);
+	    ap_xmlPuts(handler->region.chromosome,handler->r);
+	    ap_rprintf(handler->r,"\" modbio:start=\"%d\" modbio:end=\"%d\"",
 		    handler->region.p_beg_i0,
 		    handler->region.p_end_i0
 		);
 	    }
-	ap_rputc('>',handler->r);
+	else
+	    {
+	    
+	    }
+	ap_rputs("><DNAseq>",handler->r);
 	}
 
 
 static void xmlEnd( struct faidx_callback_t* handler)
 	{
-	ap_rputs("</sequence>\n</faidx>\n",handler->r);
+	ap_rputs("</DNAseq></entry>\n</seqXML>\n",handler->r);
 	}
 
 		

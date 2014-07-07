@@ -1,0 +1,148 @@
+{
+    "fields": [
+        {
+            "name": "header", 
+            "type": [
+                null, 
+                "string"
+            ]
+        }, 
+        {
+            "items": {
+                "fields": [
+                    {
+                        "items": {
+                            "fields": [
+                                {
+                                    "name": "name", 
+                                    "type": [
+                                        null, 
+                                        "string"
+                                    ]
+                                }, 
+                                {
+                                    "name": "type", 
+                                    "type": [
+                                        null, 
+                                        "string"
+                                    ]
+                                }, 
+                                {
+                                    "name": "value", 
+                                    "type": [
+                                        null, 
+                                        "int"
+                                    ]
+                                }
+                            ], 
+                            "name": "aux", 
+                            "type": "record"
+                        }, 
+                        "name": "aux", 
+                        "type": "array"
+                    }, 
+                    {
+                        "name": "chrom", 
+                        "type": [
+                            null, 
+                            "string"
+                        ]
+                    }, 
+                    {
+                        "items": {
+                            "fields": [
+                                {
+                                    "name": "count", 
+                                    "type": [
+                                        null, 
+                                        "int"
+                                    ]
+                                }, 
+                                {
+                                    "name": "op", 
+                                    "type": [
+                                        null, 
+                                        "string"
+                                    ]
+                                }
+                            ], 
+                            "name": "cigar", 
+                            "type": "record"
+                        }, 
+                        "name": "cigar", 
+                        "type": "array"
+                    }, 
+                    {
+                        "name": "flag", 
+                        "type": [
+                            null, 
+                            "int"
+                        ]
+                    }, 
+                    {
+                        "name": "insert-size", 
+                        "type": [
+                            null, 
+                            "int"
+                        ]
+                    }, 
+                    {
+                        "name": "mapq", 
+                        "type": [
+                            null, 
+                            "int"
+                        ]
+                    }, 
+                    {
+                        "name": "mate-chrom", 
+                        "type": [
+                            null, 
+                            "string"
+                        ]
+                    }, 
+                    {
+                        "name": "mate-pos", 
+                        "type": [
+                            null, 
+                            "int"
+                        ]
+                    }, 
+                    {
+                        "name": "name", 
+                        "type": [
+                            null, 
+                            "string"
+                        ]
+                    }, 
+                    {
+                        "name": "pos", 
+                        "type": [
+                            null, 
+                            "int"
+                        ]
+                    }, 
+                    {
+                        "name": "qual", 
+                        "type": [
+                            null, 
+                            "string"
+                        ]
+                    }, 
+                    {
+                        "name": "sequence", 
+                        "type": [
+                            null, 
+                            "string"
+                        ]
+                    }
+                ], 
+                "name": "records", 
+                "type": "record"
+            }, 
+            "name": "records", 
+            "type": "array"
+        }
+    ], 
+    "name": "Bam", 
+    "type": "record"
+}

@@ -1,0 +1,22 @@
+{
+    "fields": [
+        {
+            "name": "chrom", 
+            "type": "string"
+        }, 
+        {
+            "name": "start", 
+            "type": "int"
+        }, 
+        {
+            "name": "end", 
+            "type": "int"
+        }, 
+        {
+            "name": "sequence", 
+            "type": "string"
+        }
+    ], 
+    "name": "Fasta", 
+    "type": "record"
+}

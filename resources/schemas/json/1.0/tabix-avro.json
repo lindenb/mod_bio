@@ -1,0 +1,23 @@
+{
+    "name": "Tabix", 
+    "type": "record",
+     "fields": [
+        {
+           
+            "name": "header", 
+            "type": "array",
+            "items": {
+            	"name": "line", 
+            	"type": "string"
+            	}
+        }, 
+        {
+            "name": "body", 
+            "type": "array",
+             "items": {
+            	"name": "line", 
+            	"type": "string"
+            	}
+        }
+    ]
+}

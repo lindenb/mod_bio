@@ -77,13 +77,13 @@ http://localhost/path1/path2/rf.fa?format=html&region=RF02%3A1-200
 
 ### Example: format=xml
 
-http://localhost/path1/path2/rf.fa?format=html&region=RF02%3A1-200
+http://localhost/path1/path2/rf.fa?format=xml&region=RF02%3A1-200
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<faidx  git-version="11f13c8b9a8fb4dee7713c2860094c86fb3acc01">
-  <sequence  chrom="RF02" start="1" end="200">gctattaaaggCtcaATGGCGTACAGGAAACGTGGAGCGCGCCGTGAGGCGAATATAAATAATAATGACCGAATGCAAGAGAAAGATGACGAGAAACAAGATCAAAACAATAGAATGCAGTTGTCTGATAAAGTACTTTCAAAGAAAGAGGAAGTCGTAACCGACAGTCAAGAAGAAATTAAAATTGCTGATGAAGTGAA</sequence>
-</faidx>
+<seqXML seqXMLversion="0.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="http://www.seqxml.org/0.4/seqxml.xsd" xmlns:modbio="https://github.com/lindenb/mod_bio#"  modbio:git-version="11f13c8b9a8fb4dee7713c2860094c86fb3acc01">
+<entry  id="RF02:1-200" modbio:chrom="RF02" modbio:start="1" modbio:end="200"><DNAseq>gctattaaaggCtcaATGGCGTACAGGAAACGTGGAGCGCGCCGTGAGGCGAATATAAATAATAATGACCGAATGCAAGAGAAAGATGACGAGAAACAAGATCAAAACAATAGAATGCAGTTGTCTGATAAAGTACTTTCAAAGAAAGAGGAAGTCGTAACCGACAGTCAAGAAGAAATTAAAATTGCTGATGAAGTGAA</DNAseq></entry>
+</seqXML>
 ```
 
 ### Example: format=json
@@ -501,6 +501,9 @@ http://localhost/~lindenb/mod_bio/index-ngs.json&callback=myfun
 myfun({"git-version":"11f13c8b9a8fb4dee7713c2860094c86fb3acc01","content":["rf.vcf.gz","rf.fa.fai","rf.bam","out.read1.fq.gz","rf.bam.bai","out.read2.fq.gz"]});
 ```
 
+## Schemas
+
+* JSON schemas have been generated unders `resources/schemas/json/1.0/` using http://jsonschema.net/
 
 
 
@@ -684,5 +687,9 @@ IndexIgnore footer.html .htaccess
 
 </IfModule> 
 ```
+
+## History
+
+* June 2014 paper reviewed in Bioinformatics. Minor revisions: added JSON schema.
 
 
