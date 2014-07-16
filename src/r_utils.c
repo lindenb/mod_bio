@@ -233,7 +233,9 @@ int baseNameExists(const char* filename)
 	return ret;
 	}
 
-
+/** parses a genomic region chrom:start-end 
+ * return -1 on error
+ */ 
 int parseRegion(const char* region,ChromStartEnd* pos)
     {
     char* colon;
