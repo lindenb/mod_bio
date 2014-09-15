@@ -72,7 +72,7 @@ GAAGTCGTAACCGACAGTCAAGAAGAAATTAAAATTGCTGATGAAGTGAA
 http://localhost/path1/path2/rf.fa?format=html&region=RF02%3A1-200
 
 
-![HTML](doc/img/bam_html_01.jpg?raw=true)
+![HTML](doc/img/faidx_html_01.jpg?raw=true)
 
 
 ### Example: format=xml
